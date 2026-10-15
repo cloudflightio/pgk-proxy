@@ -1,0 +1,406 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "elga-gtelvogdarollen",
+  "url": "https://termgit.elga.gv.at/CodeSystem/elga-gtelvogdarollen",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "urn:ietf:rfc:3986",
+      "value": "urn:oid:1.2.40.0.34.5.2"
+    }
+  ],
+  "version": "1.3.0+20260421",
+  "name": "elga-gtelvogdarollen",
+  "title": "ELGA_GTelVoGDARollen",
+  "status": "active",
+  "date": "2026-04-21",
+  "description": "**Description:** In this code system, the roles from the Health Telematics Regulation 2013 (GTelV 2013) and supplementary roles that are not included in the regulation ,are represented.\n\n**Beschreibung:** In diesem Codesystemen werden die Rollen aus der Gesundheitstelematikverordnung 2013 (GTelV 2013) und erg\u00e4nzende Rollen, die nicht in der Verordnung enthalten sind, abgebildet.",
+  "content": "complete",
+  "count": 78,
+  "property": [
+    {
+      "code": "child",
+      "type": "code"
+    },
+    {
+      "code": "parent",
+      "type": "code"
+    },
+    {
+      "code": "status",
+      "type": "code"
+    }
+  ],
+  "concept": [
+    {
+      "code": "100",
+      "display": "\u00c4rztin/Arzt f\u00fcr Allgemeinmedizin",
+      "definition": "\u00c4rztin/Arzt f\u00fcr Allgemeinmedizin, gegebenenfalls unter Beif\u00fcgung der gem\u00e4\u00df \u00c4rztinnen-/\u00c4rzte-Ausbildungsordnung\u00a02006 (\u00c4AO\u00a02006), BGBl.\u00a0II Nr.\u00a0286/2006, in der jeweils geltenden Fassung, zutreffenden Zusatzbezeichnung des Additivfaches in runden Klammern",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "1000"
+        }
+      ]
+    },
+    {
+      "code": "1000",
+      "display": "\u00c4rztin/Arzt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        },
+        {
+          "code": "child",
+          "valueCode": "100"
+        },
+        {
+          "code": "child",
+          "valueCode": "158"
+        },
+        {
+          "code": "child",
+          "valueCode": "159"
+        }
+      ]
+    },
+    {
+      "code": "158",
+      "display": "Fach\u00e4rztin/Facharzt, gem\u00e4\u00df \u00c4AO 2006",
+      "definition": "Fach\u00e4rztin/Facharzt, unter Beif\u00fcgung der gem\u00e4\u00df \u00c4AO\u00a02006 zutreffenden Berufsbezeichnung",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "1000"
+        }
+      ]
+    },
+    {
+      "code": "159",
+      "display": "Fach\u00e4rztin/Facharzt, gem\u00e4\u00df \u00c4AO 2015",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "1000"
+        }
+      ]
+    },
+    {
+      "code": "101",
+      "display": "Approbierte \u00c4rztin/Approbierter Arzt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "154",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Zahn-, Mund- und Kieferheilkunde",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "155",
+      "display": "Zahn\u00e4rztin/Zahnarzt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "156",
+      "display": "Dentistin/Dentist",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "160",
+      "display": "Turnus\u00e4rztin/Turnusarzt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "161",
+      "display": "\u00c4rztin/Arzt mit partiellem Berufszugang",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "200",
+      "display": "Psychotherapeutin/Psychotherapeut",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "201",
+      "display": "Klinische Psychologin/Klinischer Psychologe",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "202",
+      "display": "Gesundheitspsychologin/Gesundheitspsychologe",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "203",
+      "display": "Musiktherapeutin/Musiktherapeut",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "204",
+      "display": "Hebamme",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "205",
+      "display": "Physiotherapeutin/Physiotherapeut",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "206",
+      "display": "Biomedizinische Analytikerin/Biomedizinischer Analytiker",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "207",
+      "display": "Radiologietechnologin/Radiologietechnologe",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "208",
+      "display": "Di\u00e4tologin/Di\u00e4tologe",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "209",
+      "display": "Ergotherapeutin/Ergotherapeut",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "210",
+      "display": "Logop\u00e4din/Logop\u00e4de",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "211",
+      "display": "Orthoptistin/Orthoptist",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "212",
+      "display": "Diplomierte Gesundheits- und Krankenschwester/Diplomierter Gesundheits- und Krankenpfleger",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "213",
+      "display": "Diplomierte Kinderkrankenschwester/Diplomierter Kinderkrankenpfleger",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        },
+        {
+          "code": "status",
+          "valueCode": "retired"
+        }
+      ]
+    },
+    {
+      "code": "214",
+      "display": "Diplomierte psychiatrische Gesundheits- und Krankenschwester/Diplomierter psychiatrischer Gesundheits- und Krankenpfleger",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        },
+        {
+          "code": "status",
+          "valueCode": "retired"
+        }
+      ]
+    },
+    {
+      "code": "215",
+      "display": "Heilmasseurin/Heilmasseur",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "216",
+      "display": "Diplomierte Kardiotechnikerin/Diplomierter Kardiotechniker",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "219",
+      "display": "Pflegeassistenz",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "220",
+      "display": "Pflegefachassistenz",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "221",
+      "display": "Operationstechnische Assistenz",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "10"
+        }
+      ]
+    },
+    {
+      "code": "157",
+      "display": "\u00c4rztin/Arzt in Ausbildung",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "30"
+        }
+      ]
+    },
+    {
+      "code": "217",
+      "display": "Pflegeassistentin/Pflegeassistent",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "30"
+        },
+        {
+          "code": "status",
+          "valueCode": "retired"
+        }
+      ]
+    },
+    {
+      "code": "218",
+      "display": "Pflegefachassistentin/Pflegefachassistent",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "30"
+        },
+        {
+          "code": "status",
+          "valueCode": "retired"
+        }
+      ]
+    },
+    {
+      "code": "222",
+      "display": "Apothekerin/Apotheker",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "30"
+        }
+      ]
+    }
+  ]
+}

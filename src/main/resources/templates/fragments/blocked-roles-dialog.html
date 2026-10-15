@@ -1,0 +1,75 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    The "Blocked Roles" slide-in dialog for one direction. The form posts the COMPLETE
+    checked state (unchecked boxes are not submitted). The search box re-fetches the role
+    list from the server (filtering happens in the controller, no JS); hx-include sends the
+    currently checked boxes so filtering keeps in-progress selections. The dialog is opened
+    and closed with the #blockedRolesToggle CSS checkbox (see invitation-rights.html), so no
+    script is needed. On success the controller returns the save-ok marker plus an
+    out-of-band refresh of the page's panel.
+    roles = List<BlockedRoleOption>.
+-->
+<th:block th:fragment="dialog">
+    <div id="blockedRolesDialog">
+        <form class="blocked-dialog"
+                th:attr="hx-post=@{/admin/invitation-rights/roles/{direction}(direction=${direction})}"
+                hx-target="#blockedDialogFeedback" hx-swap="innerHTML">
+            <div class="blocked-dialog-header">
+                <h3 th:text="${title}">Gesperrte Rollen festlegen – Einladungen empfangen</h3>
+                <label for="blockedRolesToggle" class="dialog-close" aria-label="Schließen">✕</label>
+            </div>
+            <div class="blocked-dialog-body">
+                <label class="field-label" for="roleSearch">Rollen</label>
+                <input type="text" id="roleSearch" name="q" class="dialog-search" placeholder="Rolle suchen..."
+                        autocomplete="off" th:value="${q}"
+                        th:hx-get="@{/admin/invitation-rights/roles/{direction}/dialog(direction=${direction})}"
+                        hx-trigger="input changed delay:250ms"
+                        hx-target="#blockedRoleList"
+                        hx-swap="innerHTML"
+                        hx-include="closest form"/>
+                <div class="dialog-section">ANERKANNTE BERUFE</div>
+                <div class="dialog-role-list" id="blockedRoleList">
+                    <th:block th:replace="~{fragments/blocked-roles-dialog :: role-list}"></th:block>
+                </div>
+                <div id="blockedDialogFeedback" class="dialog-feedback"></div>
+            </div>
+            <div class="blocked-dialog-footer">
+                <label for="blockedRolesToggle" class="dialog-cancel">Abbrechen</label>
+                <button type="submit" class="dialog-save">Speichern</button>
+            </div>
+        </form>
+    </div>
+</th:block>
+
+<!--
+    The filtered role rows. Returned alone while the user types in the dialog search box so
+    only the list is swapped; [blocked] reflects the in-progress checkbox state.
+-->
+<th:block th:fragment="role-list">
+    <label class="role-row" th:each="role : ${roles}">
+        <input type="checkbox" name="blockedRoles" th:value="${role.token}" th:checked="${role.blocked}">
+        <span th:text="${role.display}">Fachärztin/Facharzt für Kardiologie</span>
+    </label>
+</th:block>
+
+</body>
+</html>

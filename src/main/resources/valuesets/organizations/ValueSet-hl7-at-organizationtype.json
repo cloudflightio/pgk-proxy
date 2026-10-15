@@ -1,0 +1,616 @@
+{
+  "resourceType": "ValueSet",
+  "id": "hl7-at-organizationtype",
+  "url": "https://termgit.elga.gv.at/ValueSet/hl7-at-organizationtype",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "urn:ietf:rfc:3986",
+      "value": "urn:oid:1.2.40.0.34.6.0.10.86"
+    }
+  ],
+  "version": "1.1.0+20260422",
+  "name": "hl7-at-organizationtype",
+  "title": "HL7-at_OrganizationType",
+  "status": "active",
+  "date": "2026-04-22",
+  "description": "**Description:** In this code system, the roles from the Health Telematics Regulation 2013 (GTelV 2013) and supplementary roles that are not included in the regulation ,are represented.\n\n**Beschreibung:** In diesem Codesystemen werden die Rollen aus der Gesundheitstelematikverordnung 2013 (GTelV 2013) und erg\u00e4nzende Rollen, die nicht in der Verordnung enthalten sind, abgebildet.",
+  "content": "complete",
+  "count": 78,
+  "property": [
+    {
+      "code": "child",
+      "type": "code"
+    },
+    {
+      "code": "parent",
+      "type": "code"
+    },
+    {
+      "code": "status",
+      "type": "code"
+    }
+  ],
+  "concept": [
+    {
+      "code": "20",
+      "display": "Teil\u00a02: Rollen f\u00fcr Organisationen",
+      "property": [
+        {
+          "code": "child",
+          "valueCode": "300"
+        },
+        {
+          "code": "child",
+          "valueCode": "301"
+        },
+        {
+          "code": "child",
+          "valueCode": "302"
+        },
+        {
+          "code": "child",
+          "valueCode": "303"
+        },
+        {
+          "code": "child",
+          "valueCode": "304"
+        },
+        {
+          "code": "child",
+          "valueCode": "305"
+        },
+        {
+          "code": "child",
+          "valueCode": "306"
+        },
+        {
+          "code": "child",
+          "valueCode": "307"
+        },
+        {
+          "code": "child",
+          "valueCode": "309"
+        },
+        {
+          "code": "child",
+          "valueCode": "310"
+        },
+        {
+          "code": "child",
+          "valueCode": "311"
+        },
+        {
+          "code": "child",
+          "valueCode": "312"
+        },
+        {
+          "code": "child",
+          "valueCode": "313"
+        },
+        {
+          "code": "child",
+          "valueCode": "314"
+        },
+        {
+          "code": "child",
+          "valueCode": "315"
+        },
+        {
+          "code": "child",
+          "valueCode": "316"
+        },
+        {
+          "code": "child",
+          "valueCode": "317"
+        },
+        {
+          "code": "child",
+          "valueCode": "318"
+        },
+        {
+          "code": "child",
+          "valueCode": "319"
+        },
+        {
+          "code": "child",
+          "valueCode": "320"
+        },
+        {
+          "code": "child",
+          "valueCode": "321"
+        },
+        {
+          "code": "child",
+          "valueCode": "322"
+        },
+        {
+          "code": "child",
+          "valueCode": "400"
+        },
+        {
+          "code": "child",
+          "valueCode": "401"
+        },
+        {
+          "code": "child",
+          "valueCode": "403"
+        },
+        {
+          "code": "child",
+          "valueCode": "404"
+        },
+        {
+          "code": "child",
+          "valueCode": "405"
+        },
+        {
+          "code": "child",
+          "valueCode": "406"
+        },
+        {
+          "code": "child",
+          "valueCode": "407"
+        },
+        {
+          "code": "child",
+          "valueCode": "408"
+        },
+        {
+          "code": "child",
+          "valueCode": "409"
+        },
+        {
+          "code": "child",
+          "valueCode": "500"
+        },
+        {
+          "code": "child",
+          "valueCode": "501"
+        },
+        {
+          "code": "child",
+          "valueCode": "502"
+        },
+        {
+          "code": "child",
+          "valueCode": "503"
+        },
+        {
+          "code": "child",
+          "valueCode": "504"
+        },
+        {
+          "code": "child",
+          "valueCode": "505"
+        },
+        {
+          "code": "child",
+          "valueCode": "506"
+        },
+        {
+          "code": "child",
+          "valueCode": "507"
+        },
+        {
+          "code": "child",
+          "valueCode": "508"
+        },
+        {
+          "code": "child",
+          "valueCode": "509"
+        }
+      ]
+    },
+    {
+      "code": "300",
+      "display": "Allgemeine Krankenanstalt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "301",
+      "display": "Sonderkrankenanstalt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "302",
+      "display": "Pflegeanstalt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "303",
+      "display": "Sanatorium",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "304",
+      "display": "Selbstst\u00e4ndiges Ambulatorium",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "305",
+      "display": "Pflegeeinrichtung",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "306",
+      "display": "Mobile Pflege",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "307",
+      "display": "Kuranstalt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "309",
+      "display": "Straf- und Ma\u00dfnahmenvollzug",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "310",
+      "display": "Untersuchungsanstalt",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "311",
+      "display": "\u00d6ffentliche Apotheke",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "312",
+      "display": "Gewebebank",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "313",
+      "display": "Blutspendeeinrichtung",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "314",
+      "display": "Augen- und Kontaktlinsenoptik",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "315",
+      "display": "H\u00f6rger\u00e4teakustik",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "316",
+      "display": "Orthop\u00e4dische Produkte",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "317",
+      "display": "Zahntechnik",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "318",
+      "display": "Rettungsdienst",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "319",
+      "display": "Zahn\u00e4rztliche Gruppenpraxis",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "320",
+      "display": "\u00c4rztliche Gruppenpraxis",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "321",
+      "display": "Gewebeentnahmeeinrichtung",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "322",
+      "display": "Arbeitsmedizinisches Zentrum",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "400",
+      "display": "Gesundheitsmanagement",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "401",
+      "display": "\u00d6ffentlicher Gesundheitsdienst",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "403",
+      "display": "ELGA-Ombudsstelle",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "404",
+      "display": "Widerspruchstelle",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "405",
+      "display": "Patientenvertretung",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "406",
+      "display": "Sozialversicherung",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "407",
+      "display": "Krankenf\u00fcrsorge",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "408",
+      "display": "Gesundheitsversicherung",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "409",
+      "display": "eHealth-Servicestelle",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "500",
+      "display": "IKT-Gesundheitsservice",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "501",
+      "display": "Verrechnungsservice",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "502",
+      "display": "Prim\u00e4rversorgungseinheit",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "503",
+      "display": "Medizinproduktehersteller",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "504",
+      "display": "Gesundheitsberatung 1450",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "505",
+      "display": "\u00c4rztlicher Bereitschaftsdienst",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "506",
+      "display": "\u00c4rztebereitstellungsdienst",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "507",
+      "display": "Telemedizinischer Dienst",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "508",
+      "display": "National Contact Point (NCP)",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    },
+    {
+      "code": "509",
+      "display": "Schulgesundheitspflege",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "20"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Einladungsrechte</title>
+    <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+            rel="stylesheet">
+</head>
+<header th:replace="~{fragments/header :: header}"></header>
+
+<!--
+    hx-headers on <body> automatically adds the CSRF token to EVERY HTMX request
+    that originates from anywhere inside this page – no need to add it per element.
+-->
+<body th:attr="hx-headers=|{&quot;${_csrf.headerName}&quot;:&quot;${_csrf.token}&quot;}|">
+<div id="notification" class="notification"></div>
+<input type="checkbox" id="sidebarToggle" class="sidebar-toggle-checkbox">
+<th:block th:replace="~{fragments/sidebar :: sidebar(active='invitation-rights', subtitle='Verwaltung')}"></th:block>
+
+<div class="wrapper">
+    <div class="title">
+        <h1>Einladungsrechte</h1>
+        <p>Legen Sie fest, wer Einladungen aus anderen Organisationen empfangen und wer Einladungen an andere
+            Organisationen senden darf.</p>
+    </div>
+
+    <div class="boxed">
+        <!--
+            The sections fold down with a native <details> toggle (click the title). The
+            rows live in fragments/blocked-roles.html so the page and the HTMX responses
+            (dialog save / failure / chip toggle) can never drift.
+        -->
+        <details class="inv-section" open>
+            <summary class="boxed-title">Blockierte Rollen</summary>
+            <th:block th:replace="~{fragments/blocked-roles :: panel}"></th:block>
+        </details>
+    </div>
+
+    <div class="boxed">
+        <!--
+            Organization-wide user block list: mxids the administrator added manually (e.g.
+            users harassing the practitioners). The panel lives in fragments/blocked-users.html
+            so the list, the add-form and the HTMX response can never drift.
+        -->
+        <details class="inv-section" open>
+            <summary class="boxed-title">Blockierte Benutzer</summary>
+            <th:block th:replace="~{fragments/blocked-users :: panel}"></th:block>
+        </details>
+    </div>
+
+    <div class="boxed">
+        <!--
+            Per-user receive/send toggles, restricted to practitioners that are managed by the
+            IDP (they carry an IDP identifier and a Matrix mxid in the FHIR directory). The
+            switches live in fragments/switches.html so the table cell and the HTMX response
+            (controller returns the same fragment) can never drift.
+        -->
+        <details class="inv-section" open>
+            <summary class="boxed-title">Einladungsberechtigungen</summary>
+            <table class="inv-table">
+                <thead>
+                <tr>
+                    <th>Practitioner</th>
+                    <th class="mid">Einladungen Empfangen</th>
+                    <th class="mid">Einladungen Senden</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${practitioners}">
+                    <td>
+                        <div class="td-name">
+                            <div class="avatar" th:text="${p.initials}">AB</div>
+                            <div>
+                                <div class="n1" th:text="${p.name}">Dr. Anna Berger</div>
+                                <div class="n2" th:text="${p.subline}">@anna:matrix.traefik.me</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="mid">
+                        <span th:replace="~{fragments/switches :: receive-switch(practitionerId=${p.id}, switchValue=${p.receive})}"></span>
+                    </td>
+                    <td class="mid">
+                        <span th:replace="~{fragments/switches :: send-switch(practitionerId=${p.id}, switchValue=${p.send})}"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </details>
+    </div>
+</div>
+
+<!--
+    The dialog is opened/closed with a pure CSS checkbox toggle (same pattern as the sidebar):
+    #blockedRolesToggle is a hidden checkbox right before the overlay, and the overlay shows
+    while it is :checked. The "Bearbeiten" labels and the dialog's ✕ /
+    "Abbrechen" labels flip it; the backdrop label closes the dialog when clicked.
+-->
+<input type="checkbox" id="blockedRolesToggle" class="dialog-toggle-checkbox    ">
+<div class="dialog-overlay" id="blockedRolesOverlay">
+    <label class="dialog-backdrop" for="blockedRolesToggle"></label>
+    <div id="blockedRolesDialog"></div>
+</div>
+</body>
+</html>

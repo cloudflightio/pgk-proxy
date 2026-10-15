@@ -1,0 +1,6 @@
+.gradle
+.git
+.idea
+*.iml
+.run
+node_modules

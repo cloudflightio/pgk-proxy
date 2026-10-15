@@ -1,0 +1,71 @@
+http:
+  routers:
+    # ===================== Primary server (matrix.traefik.me) =====================
+    # Client traffic (443) - only the app's FHIR-backed user directory search goes to pgk-proxy;
+    # everything else (including federation-v2 invite via 443) goes to Synapse. Invitations are
+    # enforced exclusively at the federation boundary, so createRoom / rooms/{id}/invite are NOT
+    # intercepted: same-domain invites are always allowed.
+    matrix-proxy:
+      rule: "Host(`matrix.traefik.me`) && (PathPrefix(`/_matrix/client/v3/user_directory/search`) || PathPrefix(`/_matrix/federation/v2/invite`))"
+      entrypoints: [websecure]
+      tls: true
+      service: matrix-proxy
+    matrix-synapse:
+      rule: "Host(`matrix.traefik.me`)"
+      entrypoints: [websecure]
+      tls: true
+      service: matrix-synapse
+
+    # ===================== Partner server (partner.traefik.me) =====================
+    # Client traffic (443) for the federation partner - goes directly to the partner Synapse.
+    matrix-partner-synapse:
+      rule: "Host(`partner.traefik.me`)"
+      entrypoints: [websecure]
+      tls: true
+      service: matrix-partner-synapse
+
+    # ===================== Federation traffic (8448) =====================
+    # Federation invites are a single-hop policy check: the proxy evaluates the invitation and
+    # forwards the accepted invite directly to the in-cluster Synapse (pgk.federation.forward-base-url),
+    # so no header-based passthrough routing is needed here anymore.
+    fed-matrix-proxy:
+      rule: "Host(`matrix.traefik.me`) && PathPrefix(`/_matrix/federation/v2/invite`)"
+      entrypoints: [federation]
+      tls: true
+      service: matrix-proxy
+    fed-matrix-synapse:
+      rule: "Host(`matrix.traefik.me`)"
+      entrypoints: [federation]
+      tls: true
+      service: matrix-synapse
+    # Federation to partner.traefik.me - the first hop goes to the proxy for the policy check,
+    # forwarded copies go straight to the partner Synapse (directly, not through Traefik).
+    fed-partner-proxy:
+      rule: "Host(`partner.traefik.me`) && PathPrefix(`/_matrix/federation/v2/invite`)"
+      entrypoints: [federation]
+      tls: true
+      service: matrix-proxy
+    fed-partner-synapse:
+      rule: "Host(`partner.traefik.me`)"
+      entrypoints: [federation]
+      tls: true
+      service: matrix-partner-synapse
+
+  services:
+    matrix-proxy:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:8080"
+    matrix-synapse:
+      loadBalancer:
+        servers:
+          - url: "http://matrix:8008"
+    matrix-partner-synapse:
+      loadBalancer:
+        servers:
+          - url: "http://matrix-partner:8008"
+
+tls:
+  certificates:
+    - certFile: /certs/app.traefik.me.crt
+      keyFile: /certs/app.traefik.me.key

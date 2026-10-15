@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://pgk-db:5432/hapi
+    username: hapi
+    password: hapi
+    driverClassName: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+        search:
+          enabled: true
+          backend:
+            type: lucene
+            analysis.configurer: ca.uhn.fhir.jpa.search.HapiHSearchAnalysisConfigurers$HapiLuceneAnalysisConfigurer
+            directory.type: local-filesystem
+            directory.root: /usr/local/tomcat/data/hapi/lucenefiles
+            lucene_version: lucene_current
+
+hapi:
+  fhir:
+    fhir_version: R4
+    server_address: http://localhost:8081/fhir
+    allow_multiple_delete: true
+    allow_contains_searches: true
+    reuse_cached_search_results_millis: -1
+    server_id_strategy: UUID
+    advanced_lucene_indexing: false
+    search_index_full_text_enabled: true
+    tag_storage_mode: NON_VERSIONED
+    tester:
+      home:
+        name: PGK FHIR Server
+        server_address: http://localhost:8080/fhir
+        fhir_version: R4

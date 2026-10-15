@@ -1,0 +1,75 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Untergeordnete Organisationen</title>
+    <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+            rel="stylesheet">
+</head>
+<header th:replace="~{fragments/header :: header}"></header>
+
+<!--
+    hx-headers on <body> automatically adds the CSRF token to EVERY HTMX request
+    that originates from anywhere inside this page – no need to add it per element.
+-->
+<body th:attr="hx-headers=|{&quot;${_csrf.headerName}&quot;:&quot;${_csrf.token}&quot;}|">
+<div id="notification" class="notification"></div>
+<input type="checkbox" id="sidebarToggle" class="sidebar-toggle-checkbox">
+<th:block th:replace="~{fragments/sidebar :: sidebar(active='organizations', subtitle='Verwaltung')}"></th:block>
+
+<div class="wrapper">
+    <div class="title">
+        <h1>Untergeordnete Organisationen</h1>
+        <p>Gliedern Sie Ihre Organisation in Abteilungen, Institute und Ambulanzen.</p>
+    </div>
+
+    <div class="org-cols">
+        <div class="boxed tree-box">
+            <h2 class="boxed-title">Aufbau der Organisation</h2>
+            <th:block th:replace="~{fragments/organizations :: tree}"></th:block>
+        </div>
+
+        <div class="boxed form-box">
+            <h2 class="boxed-title">Angaben zur Organisation</h2>
+            <th:block th:replace="~{fragments/organizations :: form}"></th:block>
+        </div>
+    </div>
+</div>
+
+<!--
+    The delete confirmation dialog is opened/closed with the same pure CSS checkbox pattern as
+    the blocked-roles dialog (see invitation-rights.html): #deleteDialogToggle is a hidden
+    checkbox right before the overlay, and the overlay shows while it is :checked. The tree
+    node's ✕ labels flip it and hx-get the confirmation into #deleteDialog; the dialog's
+    ✕ / "Abbrechen" labels and the backdrop uncheck it to close – no script and no round trip
+    needed to dismiss it. The overlay is always present but hidden, so nothing is ever rendered
+    inline in the form card.
+-->
+<input type="checkbox" id="deleteDialogToggle" class="dialog-toggle-checkbox">
+<div class="dialog-overlay" id="deleteDialogOverlay">
+    <label class="dialog-backdrop" for="deleteDialogToggle"></label>
+    <div id="deleteDialog"></div>
+</div>
+</body>
+</html>

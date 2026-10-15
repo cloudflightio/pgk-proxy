@@ -1,0 +1,14 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "healthcareservice-telecom",
+  "url": "http://your-org/fhir/SearchParameter/healthcareservice-telecom",
+  "name": "telecom",
+  "status": "active",
+  "description": "Search HealthcareService by telecom",
+  "code": "telecom",
+  "base": [
+    "HealthcareService"
+  ],
+  "type": "token",
+  "expression": "HealthcareService.telecom"
+}

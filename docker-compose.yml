@@ -1,0 +1,515 @@
+services:
+  matrix:
+    image: matrixdotorg/synapse:v1.157.0
+    container_name: matrix
+    volumes:
+      - ./config/synapse:/data
+      - ./config/synapse/custom-ca-bundle.crt:/etc/ssl/certs/ca-certificates.crt:ro
+      - matrix-media:/data/media_store
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.traefik.me
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+      - HTTPS_PROXY=http://egress-proxy:3128
+      - HTTP_PROXY=http://egress-proxy:3128
+      - NO_PROXY=localhost,127.0.0.1,pgk-proxy,traefik,element,idp.traefik.me
+    depends_on:
+      matrix-init:
+        condition: service_completed_successfully
+      matrix-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8008/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "18008:8008"
+      - "18448:8448" # federation
+    extra_hosts:
+      - "partner.traefik.me:host-gateway"
+    networks:
+      - messaging-net
+
+  # Matrix initialization - generate signing key, build CA bundle and set permissions
+  matrix-init:
+    image: matrixdotorg/synapse:v1.157.0
+    container_name: matrix-init
+    volumes:
+      - ./config/synapse:/data
+      - ./certs/rootCA.pem:/certs/rootCA.pem:ro
+      - matrix-media:/data/media_store
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.traefik.me
+      - SYNAPSE_REPORT_STATS=no
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        if [ ! -f /data/matrix.traefik.me.signing.key ]; then
+          echo "Generating signing key..."
+          python -m synapse.app.homeserver --generate-keys --config-path /data/homeserver.yaml
+        else
+          echo "Signing key already exists"
+        fi
+        echo "Building custom CA bundle..."
+        if [ -f /certs/rootCA.pem ]; then
+          cat /etc/ssl/certs/ca-certificates.crt /certs/rootCA.pem \
+            > /data/custom-ca-bundle.crt
+          echo "Custom CA bundle written to /data/custom-ca-bundle.crt"
+        else
+          echo "WARNING: /certs/rootCA.pem not found, copying system bundle as-is"
+          cp /etc/ssl/certs/ca-certificates.crt /data/custom-ca-bundle.crt
+        fi
+        echo "Setting permissions for synapse user (991:991)..."
+        chown -R 991:991 /data
+        echo "Setting permissions for media_store..."
+        chown -R 991:991 /data/media_store
+    networks:
+      - messaging-net
+
+  matrix-db:
+    image: postgres:17-alpine
+    container_name: matrix-db
+    environment:
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: synapse
+      POSTGRES_DB: synapse
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - matrix-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U synapse" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-net
+
+  # Second Matrix server - federation partner (partner.traefik.me)
+  matrix-partner:
+    image: matrixdotorg/synapse:v1.157.0
+    container_name: matrix-partner
+    volumes:
+      - ./config/synapse-partner:/data
+      - ./config/synapse-partner/custom-ca-bundle.crt:/etc/ssl/certs/ca-certificates.crt:ro
+      - matrix-partner-media:/data/media_store
+    environment:
+      - SYNAPSE_SERVER_NAME=partner.traefik.me
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+    depends_on:
+      matrix-partner-init:
+        condition: service_completed_successfully
+      matrix-partner-db:
+        condition: service_healthy
+      keycloak-partner:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8008/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "18009:8008"
+      - "18449:8448" # federation
+    extra_hosts:
+      - "matrix.traefik.me:host-gateway"
+    networks:
+      - partner-net
+
+  # Matrix partner initialization - generate signing key, build CA bundle and set permissions
+  matrix-partner-init:
+    image: matrixdotorg/synapse:v1.157.0
+    container_name: matrix-partner-init
+    volumes:
+      - ./config/synapse-partner:/data
+      - ./certs/rootCA.pem:/certs/rootCA.pem:ro
+      - matrix-partner-media:/data/media_store
+    environment:
+      - SYNAPSE_SERVER_NAME=partner.traefik.me
+      - SYNAPSE_REPORT_STATS=no
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        if [ ! -f /data/partner.traefik.me.signing.key ]; then
+          echo "Generating signing key..."
+          python -m synapse.app.homeserver --generate-keys --config-path /data/homeserver.yaml
+        else
+          echo "Signing key already exists"
+        fi
+        echo "Building custom CA bundle..."
+        if [ -f /certs/rootCA.pem ]; then
+          cat /etc/ssl/certs/ca-certificates.crt /certs/rootCA.pem \
+            > /data/custom-ca-bundle.crt
+          echo "Custom CA bundle written to /data/custom-ca-bundle.crt"
+        else
+          echo "WARNING: /certs/rootCA.pem not found, copying system bundle as-is"
+          cp /etc/ssl/certs/ca-certificates.crt /data/custom-ca-bundle.crt
+        fi
+        echo "Setting permissions for synapse user (991:991)..."
+        chown -R 991:991 /data
+        echo "Setting permissions for media_store..."
+        chown -R 991:991 /data/media_store
+    networks:
+      - partner-net
+
+  matrix-partner-db:
+    image: postgres:17-alpine
+    container_name: matrix-partner-db
+    environment:
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: synapse
+      POSTGRES_DB: synapse
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - matrix-partner-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U synapse" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - partner-net
+
+  element:
+    image: vectorim/element-web:latest
+    container_name: pgk-element
+    volumes:
+      - ./config/element/config.json:/app/config.json
+    networks:
+      - messaging-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.element.rule=Host(`element.traefik.me`)
+      - traefik.http.routers.element.entrypoints=websecure
+      - traefik.http.routers.element.tls=true
+      - traefik.http.services.element.loadbalancer.server.port=80
+
+  element-partner:
+    image: vectorim/element-web:latest
+    container_name: pgk-element-partner
+    volumes:
+      - ./config/element-partner/config.json:/app/config.json
+    networks:
+      - partner-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.element-partner.rule=Host(`element-partner.traefik.me`)
+      - traefik.http.routers.element-partner.entrypoints=websecure
+      - traefik.http.routers.element-partner.tls=true
+      - traefik.http.services.element-partner.loadbalancer.server.port=80
+
+  # Fixes ownership of the Lucene index volume for the FHIR server's non-root user
+  pgk-fhir-init:
+    image: busybox:stable-uclibc
+    container_name: pgk-fhir-init
+    volumes:
+      - pgk-fhir-lucene:/usr/local/tomcat/data/hapi/lucenefiles
+    entrypoint: [ "/bin/sh", "-c", "chown -R 65532:65532 /usr/local/tomcat/data/hapi/lucenefiles && chmod -R u+rwX /usr/local/tomcat/data/hapi/lucenefiles" ]
+    networks:
+      - messaging-net
+
+  pgk-fhir-post-init:
+    image: curlimages/curl:latest
+    container_name: pgk-fhir-post-init
+    depends_on:
+      pgk-fhir:
+        condition: service_healthy
+    volumes:
+      - ./config/pgk-fhir/searchparams:/search-params
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        echo "==> pgk-fhir-post-init: starting search-parameter upload"
+        for f in /search-params/*.json; do
+          name=$$(basename $$f .json)
+          echo "  -> uploading '$${name}'..."
+          curl -s -X PUT \
+            -H "Content-Type: application/fhir+json" \
+            -d @$$f \
+            http://pgk-fhir:8080/fhir/SearchParameter/$$name
+          echo "  -> uploaded '$${name}'"
+        done
+        echo "==> pgk-fhir-post-init: upload complete"
+    restart: on-failure
+    networks:
+      - messaging-net
+
+  pgk-fhir:
+    build:
+      context: ./config/pgk-fhir
+      dockerfile: Dockerfile
+    container_name: pgk-fhir
+    ports:
+      - "8081:8080"
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms512m -Xmx1536m
+    mem_limit: 2g
+    volumes:
+      # Named fhir-server.yaml (not application*.yml) so the host-run pgk-proxy does not
+      # pick it up via Spring Boot's default `config/*/` search. Mounted as application.yaml
+      # inside the container where the FHIR server expects it.
+      - ./config/pgk-fhir/fhir-server.yaml:/app/config/application.yaml:ro
+      - pgk-fhir-lucene:/usr/local/tomcat/data/hapi/lucenefiles
+    depends_on:
+      pgk-fhir-init:
+        condition: service_completed_successfully
+      pgk-db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "/usr/local/bin/wget", "--spider", "--quiet", "http://localhost:8080/fhir/metadata" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    networks:
+      - messaging-net
+
+  pgk-db:
+    image: postgres:17-alpine
+    container_name: pgk-db
+    environment:
+      POSTGRES_USER: hapi
+      POSTGRES_PASSWORD: hapi
+      POSTGRES_DB: hapi
+    volumes:
+      - pgk-db-data:/var/lib/postgresql/data
+      - ./config/pgk-db/init/:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${PGK_DB_PORT:-5432}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U hapi" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7
+    ports:
+      - "8082:8080"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KC_DB_SCHEMA: public
+      KC_HOSTNAME: "https://idp.traefik.me"
+      KC_PROXY_HEADERS: "xforwarded"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Read by the pgk-idp-provisioning event listener and the pgk-display-name protocol mapper.
+      # pgk-proxy runs on the host in the local setup, hence host.docker.internal (see extra_hosts
+      # below). `localhost` inside the keycloak container would reach the container itself.
+      PGK_PROXY_BASE_URL: http://host.docker.internal:8080
+      PGK_PROXY_WEBHOOK_SECRET: pgk-dev-webhook-secret
+      PGK_IDP_REALM: pgk
+      PGK_MATRIX_DOMAIN: matrix.traefik.me
+      PGK_DISPLAYNAME_REFRESH_MINUTES: 60
+    volumes:
+      - ./config/keycloak/:/opt/keycloak/data/import:ro
+      - ./keycloak-provider/build/keycloak/pgk-idp-event-listener.jar:/opt/keycloak/providers/pgk-idp-event-listener.jar:ro
+    command:
+      - start-dev
+      - --import-realm
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/localhost/9000 &&
+          echo -e 'GET /health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          cat <&3 | grep -q ' 200 '
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+    networks:
+      - messaging-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.idp.rule=Host(`idp.traefik.me`)
+      - traefik.http.routers.idp.entrypoints=websecure
+      - traefik.http.routers.idp.tls=true
+      - traefik.http.services.idp.loadbalancer.server.port=8080
+
+  keycloak-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U keycloak" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - messaging-net
+
+  keycloak-partner:
+    image: quay.io/keycloak/keycloak:26.7
+    ports:
+      - "8083:8080"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-partner-db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KC_DB_SCHEMA: public
+      KC_HOSTNAME: "https://idp-partner.traefik.me"
+      KC_PROXY_HEADERS: "xforwarded"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      - ./config/keycloak-partner/:/opt/keycloak/data/import:ro
+    command:
+      - start-dev
+      - --import-realm
+    depends_on:
+      keycloak-partner-db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/localhost/9000 &&
+          echo -e 'GET /health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          cat <&3 | grep -q ' 200 '
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+    networks:
+      - partner-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.idp-partner.rule=Host(`idp-partner.traefik.me`)
+      - traefik.http.routers.idp-partner.entrypoints=websecure
+      - traefik.http.routers.idp-partner.tls=true
+      - traefik.http.services.idp-partner.loadbalancer.server.port=8080
+
+  keycloak-partner-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - keycloak-partner-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U keycloak" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - partner-net
+
+  traefik:
+    image: traefik:v2.11
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --accesslog=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.filename=/dynamic.yml
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.federation.address=:8448
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8448:8448" # Matrix federation
+      - "8888:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/certs:ro
+      - ./dynamic.yml:/dynamic.yml:ro
+    networks:
+      messaging-net:
+        aliases:
+          - idp.traefik.me
+          - matrix.traefik.me
+          - element.traefik.me
+          - partner.traefik.me
+      partner-net:
+        aliases:
+          - idp-partner.traefik.me
+          - partner.traefik.me
+          - element-partner.traefik.me
+          - matrix.traefik.me
+
+  egress-proxy:
+    image: ubuntu/squid:latest
+    container_name: egress-proxy
+    restart: unless-stopped
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        rm -f /run/squid.pid
+        mkdir -p /etc/squid/dynamic
+        touch /etc/squid/dynamic/whitelist.txt
+        chmod 666 /dev/stdout /dev/stderr
+        echo "[$(date)] Starting Squid..."
+        squid -f /etc/squid/squid.conf -NYC &
+        SQUID_PID=$$!
+        echo "[$(date)] Squid started with PID $$SQUID_PID"
+        while true; do
+          sleep 600 # reload every 10 minutes
+          if kill -0 $$SQUID_PID 2>/dev/null; then
+            echo "[$(date)] Reloading whitelist...."
+            squid -k reconfigure -f /etc/squid/squid.conf || true
+          else
+            echo "[$(date)] ERROR: Squid died!"
+            exit 1
+          fi
+        done
+    volumes:
+      - ./config/squid/conf/squid.conf:/etc/squid/squid.conf:ro
+      - ./config/squid/whitelist/:/etc/squid/dynamic
+    extra_hosts:
+      - "partner.traefik.me:host-gateway"
+    networks:
+      - messaging-net
+
+networks:
+  messaging-net:
+    driver: bridge
+  partner-net:
+    driver: bridge
+
+volumes:
+  matrix-media:
+  matrix-db-data:
+  matrix-partner-media:
+  matrix-partner-db-data:
+  pgk-db-data:
+  pgk-fhir-lucene:
+  keycloak-db-data:
+  keycloak-partner-db-data:

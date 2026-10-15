@@ -1,0 +1,10 @@
+{
+  "default_server_config": {
+    "m.homeserver": {
+      "base_url": "https://matrix.traefik.me",
+      "server_name": "matrix.traefik.me"
+    }
+  },
+  "disable_guests": true,
+  "brand": "PGK Test"
+}

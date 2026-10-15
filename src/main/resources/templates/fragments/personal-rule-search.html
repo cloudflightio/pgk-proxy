@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    Role lookup results for the add-rule dialog. The list is returned alone while the user
+    types in the role search box, so only #personalRoleResults is swapped.
+    roles = List<RoleOption>: checkbox selection, the role's [blocked] flag reflects the
+    in-progress checkbox state (hx-include sends the currently checked boxes on every
+    keystroke, the server re-derives [blocked] from them).
+-->
+<th:block th:fragment="roles">
+    <th:block th:if="${!#strings.isEmpty(q)}">
+        <div th:if="${#lists.isEmpty(roles)}" class="no-suggestions">
+            Keine Ergebnisse gefunden
+        </div>
+        <label class="role-row" th:each="r : ${roles}">
+            <input type="checkbox" name="blockedRoles" th:value="${r.id}"
+                    th:checked="${r.blocked}"/>
+            <span th:text="${r.codeDisplay}">Fachärztin/Facharzt für Herzchirurgie</span>
+        </label>
+    </th:block>
+</th:block>
+
+</body>
+</html>

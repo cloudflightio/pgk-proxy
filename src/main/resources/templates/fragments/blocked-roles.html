@@ -1,0 +1,102 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    The whole "Blocked Roles" panel: both rows in one element. The page includes it once
+    and the save response refreshes it via an out-of-band swap (id blockedRolesPanel,
+    outerHTML), so the rows and the HTMX response can never drift.
+    receiveBlockedRoles/sendBlockedRoles are lists of RolePermission.
+-->
+<th:block th:fragment="panel">
+    <div id="blockedRolesPanel">
+        <th:block th:replace="~{fragments/blocked-roles :: receive-row}"></th:block>
+        <th:block th:replace="~{fragments/blocked-roles :: send-row}"></th:block>
+    </div>
+</th:block>
+
+<!--
+    Renders the receive row. The edit label opens the centered dialog: it toggles the
+    #blockedRolesToggle CSS checkbox (shows the overlay) and loads the dialog via hx-get.
+-->
+<th:block th:fragment="receive-row">
+    <div class="blocked-row" id="receiveRow">
+        <div class="blocked-label">Einladungen empfangen</div>
+        <div class="blocked-items">
+            <th:block th:if="${#lists.isEmpty(receiveBlockedRoles)}">
+                <span class="selected-item blocked-none">Keine Rollen gesperrt</span>
+            </th:block>
+            <div th:each="chip : ${receiveBlockedRoles}" class="selected-item">
+                <span th:text="${chip.display}">Fachärztin/Facharzt für Kardiologie</span>
+                <button type="button" aria-label="Entsperren"
+                        th:attr="hx-post=@{/admin/invitation-rights/roles/receive/toggle(roleToken=${chip.token})}"
+                        hx-target="#blockedRolesPanel" hx-swap="outerHTML">✕</button>
+            </div>
+        </div>
+        <label for="blockedRolesToggle" class="blocked-edit"
+                hx-get="/admin/invitation-rights/roles/receive/dialog"
+                hx-target="#blockedRolesDialog" hx-swap="outerHTML">Bearbeiten</label>
+    </div>
+</th:block>
+
+<th:block th:fragment="send-row">
+    <div class="blocked-row" id="sendRow">
+        <div class="blocked-label">Einladungen senden</div>
+        <div class="blocked-items">
+            <th:block th:if="${#lists.isEmpty(sendBlockedRoles)}">
+                <span class="selected-item blocked-none">Keine Rollen gesperrt</span>
+            </th:block>
+            <div th:each="chip : ${sendBlockedRoles}" class="selected-item">
+                <span th:text="${chip.display}">Fachärztin/Facharzt für Kardiologie</span>
+                <button type="button" aria-label="Entsperren"
+                        th:attr="hx-post=@{/admin/invitation-rights/roles/send/toggle(roleToken=${chip.token})}"
+                        hx-target="#blockedRolesPanel" hx-swap="outerHTML">✕</button>
+            </div>
+        </div>
+        <label for="blockedRolesToggle" class="blocked-edit"
+                hx-get="/admin/invitation-rights/roles/send/dialog"
+                hx-target="#blockedRolesDialog" hx-swap="outerHTML">Bearbeiten</label>
+    </div>
+</th:block>
+
+<!--
+    Save succeeded: the response replaces #blockedRolesToggle with an unchecked copy
+    (out-of-band), which unchecks the CSS toggle and hides the overlay – the dialog closes.
+    The other out-of-band swaps refresh the notification and the page's panel.
+-->
+<th:block th:fragment="save-ok">
+    <input type="checkbox" id="blockedRolesToggle" class="dialog-toggle-checkbox" hx-swap-oob="outerHTML">
+    <div id="notification" class="notification notification-success" hx-swap-oob="true">
+        <strong>Erfolg!</strong> <span th:text="${message}">Gesperrte Rollen gespeichert.</span>
+    </div>
+    <div id="blockedRolesPanel" hx-swap-oob="outerHTML">
+        <th:block th:replace="~{fragments/blocked-roles :: receive-row}"></th:block>
+        <th:block th:replace="~{fragments/blocked-roles :: send-row}"></th:block>
+    </div>
+</th:block>
+
+<!--
+    Save failed: inline error swapped into #blockedDialogFeedback; the dialog stays open.
+-->
+<th:block th:fragment="save-error">
+    <div class="dialog-error">Speichern fehlgeschlagen.</div>
+</th:block>
+
+</body>
+</html>

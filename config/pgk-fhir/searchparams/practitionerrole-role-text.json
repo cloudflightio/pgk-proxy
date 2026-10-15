@@ -1,0 +1,13 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "practitionerrole-role-text",
+  "url": "http://pgk-fhir/SearchParameter/practitionerrole-role-text",
+  "name": "role-text",
+  "status": "active",
+  "code": "role-text",
+  "base": [
+    "PractitionerRole"
+  ],
+  "type": "string",
+  "expression": "PractitionerRole.code.text | PractitionerRole.code.coding.display"
+}

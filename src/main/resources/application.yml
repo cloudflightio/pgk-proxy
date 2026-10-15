@@ -1,0 +1,93 @@
+spring:
+  application:
+    name: pgk-proxy
+  main:
+    lazy-initialization: true
+  datasource:
+    url: jdbc:postgresql://${PGK_DB_HOST:localhost}:${PGK_DB_PORT:5432}/${PGK_DB_NAME:pgk}
+    username: ${PGK_DB_USER:pgk}
+    password: ${PGK_DB_PASSWORD:pgk}
+  flyway:
+    enabled: ${PGK_FLYWAY_ENABLED:true}
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: ${KEYCLOAK_CLIENT_ID:pgk-admin-ui}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:admin-ui-dev-secret}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: openid, profile, email
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:https://idp.traefik.me/realms/pgk}
+
+server:
+  port: 8080
+
+# PGK-specific configuration
+pgk:
+  fhir:
+    base-url: ${PGK_FHIR_BASE_URL:http://localhost:8081/fhir}
+    auth:
+      token-exchange-url: ${PGK_FHIR_TOKEN_EXCHANGE_URL:}
+      client-id: ${PGK_FHIR_CLIENT_ID:}
+      client-secret: ${PGK_FHIR_CLIENT_SECRET:}
+      username: ${PGK_FHIR_AUTH_USERNAME:}
+      password: ${PGK_FHIR_AUTH_PASSWORD:}
+    # Which FHIR search adapter is active: `revinclude` (default, needs server-side _revinclude
+    # support) or `forward` (resolves reverse references with extra forward searches; use when the
+    # FHIR server cannot process _revinclude, e.g. pineit).
+    search-mode: ${PGK_FHIR_SEARCH_MODE:revinclude}
+    log-calls: ${PGK_FHIR_LOG_CALLS:false}
+  security:
+    # Local mkcert CA, trusted in addition to the JVM default truststore for outbound HTTPS.
+    # Override with PGK_TRUSTSTORE_CA (e.g. an absolute path) if the repo isn't the working dir.
+    trust-ca: ${PGK_TRUSTSTORE_CA:certs/rootCA.pem}
+  federation:
+    refresh-interval-minutes: ${PGK_FEDERATION_REFRESH_INTERVAL_MINUTES:60}
+    # Target for forwarding an accepted federation invite - the local Synapse, reached directly
+    # (e.g. http://synapse-tenant-a:8080 or http://localhost:18009), so the forwarded copy is
+    # never re-intercepted by an ingress.
+    forward-base-url: ${PGK_FEDERATION_FORWARD_BASE_URL:}
+    # URL of the federation server this proxy belongs to. Used as the FHIR identifier system of
+    # every practitioner provisioned from the IDP.
+    domain: ${PGK_FEDERATION_DOMAIN:https://matrix.traefik.me}
+  matrix:
+    base-url: ${PGK_MATRIX_BASE_URL:https://matrix.traefik.me}
+  idp:
+    # Password of the HTTP Basic credentials the Keycloak provider sends (user `pgk-idp`) on
+    # /internal/idp/**. Must match PGK_PROXY_WEBHOOK_SECRET of the keycloak service in docker-compose.yml.
+    webhook-secret: ${PGK_IDP_WEBHOOK_SECRET:pgk-dev-webhook-secret}
+    identifier-system: ${PGK_IDENTIFIER_SYSTEM:https://idp.traefik.me/realms/pgk}
+    practitioner-profile: ${PGK_PRACTITIONER_PROFILE:http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-practitioner}
+    telecom-system: ${PGK_MATRIX_TELECOM_SYSTEM:url}
+
+# Rate limiting (Resilience4j): per-peer buckets for the unauthenticated federation invite endpoint.
+resilience4j:
+  ratelimiter:
+    configs:
+      federationInvite:
+        limit-for-period: ${PGK_INVITE_RATE_LIMIT:10}
+        limit-refresh-period: ${PGK_INVITE_RATE_LIMIT_PERIOD:1s}
+        timeout-duration: ${PGK_INVITE_RATE_LIMIT_TIMEOUT:0}
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+# Logging
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %5level [${spring.application.name:-pgk-proxy}] [%logger{0}] %msg%n"
+  level:
+    io.cloudflight.pgk.proxy: INFO
+    org.springframework.modulith: INFO
+    ca.uhn.fhir.rest.client: INFO
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: INFO
+    org.springframework.security.web: INFO

@@ -1,0 +1,85 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    The whole "Blockierte Benutzer" panel: the list of manually blocked mxids as toggleable
+    chips plus an add-form. The page includes it once and every add/remove response swaps the
+    panel in place (id blockedUsersPanel), so the list and the HTMX response can never drift.
+    blockedUsers = List<BlockedUserRow>; error (optional) shows an inline hint when an mxid
+    could not be parsed.
+-->
+<th:block th:fragment="panel">
+    <div id="blockedUsersPanel">
+        <th:block th:if="${error}">
+            <div class="dialog-error" th:text="${error}">Ungültige MXID</div>
+        </th:block>
+        <div class="blocked-items">
+            <th:block th:if="${#lists.isEmpty(blockedUsers)}">
+                <span class="selected-item blocked-none">Keine Benutzer gesperrt</span>
+            </th:block>
+            <div th:each="u : ${blockedUsers}" class="selected-item">
+                <span class="mxid-text" th:text="${u.name}">@harasser:evil.example</span>
+                <button type="button" aria-label="Entsperren"
+                        th:attr="hx-post=@{/admin/invitation-rights/users/remove(mxid=${u.mxid})}"
+                        hx-target="#blockedUsersPanel" hx-swap="outerHTML">✕</button>
+            </div>
+        </div>
+        <form class="blocked-user-add"
+                th:attr="hx-post=@{/admin/invitation-rights/users/add}"
+                hx-target="#blockedUsersPanel" hx-swap="outerHTML">
+            <div class="combobox-container">
+                <div id="blockedUserInput">
+                    <input type="text" name="mxid" class="dialog-search combobox-input"
+                            placeholder="Matrix Nutzer blockieren (Name oder MXID), z.B. @boeser:nutzer.example"
+                            autocomplete="off" required
+                            hx-get="/admin/invitation-rights/users/search"
+                            hx-trigger="input changed delay:250ms"
+                            hx-target="#blockedUserSuggestions"
+                            hx-swap="innerHTML"/>
+                </div>
+                <div class="suggestions-dropdown" id="blockedUserSuggestions"></div>
+            </div>
+            <button type="submit" class="dialog-save">Blockieren</button>
+        </form>
+    </div>
+</th:block>
+
+<!--
+    User lookup results for the block-user search box. The list is returned alone while the
+    user types, so only #blockedUserSuggestions is swapped. items = List<PractitionerOption>.
+    Clicking a suggestion fills the EXISTING input with the mxid (no element swap, so focus is
+    kept) and clears the dropdown; the user can then review/submit the block.
+-->
+<th:block th:fragment="suggestions">
+    <th:block th:if="${!#strings.isEmpty(q)}">
+        <div th:if="${#lists.isEmpty(items)}" class="no-suggestions">
+            Keine Ergebnisse gefunden
+        </div>
+        <div th:each="item : ${items}" class="suggestion-item"
+                th:attr="data-block-mxid=${item.mxid}"
+                hx-on:click="document.getElementById('blockedUserInput').querySelector('input').value = this.dataset.blockMxid; document.getElementById('blockedUserSuggestions').innerHTML = '';">
+            <div th:text="${item.name}">Dr. Anna Berger</div>
+            <div style="font-size: 12px; color: #999;" th:text="${item.mxid}">@anna:matrix.traefik.me</div>
+        </div>
+    </th:block>
+</th:block>
+
+</body>
+</html>

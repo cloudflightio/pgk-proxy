@@ -1,0 +1,70 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  th:fragment     → marks this element as a named fragment the controller can return
+  th:classappend  → adds "on" to the class list when switchValue is true (CSS drives the visual)
+  th:attr         → the only dynamic attr; builds the URL for the NEXT click
+                    v=${!switchValue} means: next click will send the opposite value
+  hx-target="this"    → HTMX replaces this very element
+  hx-swap="outerHTML" → replace the whole <span>, not just its children
+-->
+
+<span th:fragment="receive-switch"
+        class="switch"
+        th:classappend="${switchValue} ? 'on'"
+        th:attr="hx-post=@{/admin/invitation-rights/{id}/receive/{v}(id=${practitionerId},v=${!switchValue})}"
+        hx-target="this"
+        hx-swap="outerHTML"
+        title="Einladungen empfangen"
+        style="cursor: pointer">
+    <span class="knob"></span>
+</span>
+
+<span th:fragment="send-switch"
+        class="switch"
+        th:classappend="${switchValue} ? 'on'"
+        th:attr="hx-post=@{/admin/invitation-rights/{id}/send/{v}(id=${practitionerId},v=${!switchValue})}"
+        hx-target="this"
+        hx-swap="outerHTML"
+        title="Einladungen senden"
+        style="cursor: pointer">
+    <span class="knob"></span>
+</span>
+
+<!--
+  Returned when a toggle fails to persist. Renders the switch back in its UNCHANGED
+  state (switchValue = old value) so HTMX does not wipe the table cell, plus an
+  out-of-band error notification. switchType selects the correct switch fragment.
+-->
+<th:block th:fragment="switch-error(switchType)">
+    <th:block th:if="${switchType == 'receive'}">
+        <span th:replace="~{fragments/switches :: receive-switch(practitionerId=${practitionerId}, switchValue=${switchValue})}"></span>
+    </th:block>
+    <th:block th:if="${switchType == 'send'}">
+        <span th:replace="~{fragments/switches :: send-switch(practitionerId=${practitionerId}, switchValue=${switchValue})}"></span>
+    </th:block>
+    <div id="notification" class="notification notification-error" hx-swap-oob="true">
+        <strong>Fehler!</strong> <span th:text="${error}"></span>
+    </div>
+</th:block>
+
+</body>
+</html>

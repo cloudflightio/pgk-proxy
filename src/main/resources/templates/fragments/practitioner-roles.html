@@ -1,0 +1,218 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    The practitioner table of the "Rollen zuweisen" page. The page includes it once; the
+    "Name suchen…" box and the save response swap it via the #practitionerRolesTable wrapper
+    (search) / outerHTML out-of-band (save), so the page and the HTMX responses never drift.
+    rows = List<PractitionerRoleRow>.
+-->
+<th:block th:fragment="practitioner-table">
+    <div id="practitionerRolesTable">
+        <th:block th:replace="~{fragments/practitioner-roles :: practitioner-table-body}"></th:block>
+    </div>
+</th:block>
+
+<th:block th:fragment="practitioner-table-body">
+    <div th:if="${#lists.isEmpty(rows)}" class="vis-empty">
+        Keine Gesundheitsdiensteanbieter gefunden.
+    </div>
+    <table th:if="${!#lists.isEmpty(rows)}" class="inv-table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Rollen</th>
+            <th class="right"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${rows}">
+            <td>
+                <div class="td-name">
+                    <div class="avatar" th:text="${row.initials}">AB</div>
+                    <div>
+                        <div class="n1" th:text="${row.name}">Dr. Anna Berger</div>
+                        <div class="n2" th:text="${row.subline}">@anna:matrix.traefik.me</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="blocked-items">
+                    <span th:each="role : ${row.roles}" class="selected-item">
+                        <span th:text="${role.display}">Fachärztin/Facharzt für Herzchirurgie</span>
+                        <button type="button" aria-label="Rolle entfernen"
+                                th:attr="hx-post=@{/admin/practitioner-roles/{id}/remove-role(id=${row.id}, roleToken=${role.token})}"
+                                hx-target="#practitionerRolesTable"
+                                hx-swap="outerHTML">✕</button>
+                    </span>
+                    <span th:if="${#lists.isEmpty(row.roles)}" class="selected-item blocked-none">
+                        Keine Rolle zugewiesen
+                    </span>
+                </div>
+            </td>
+            <td class="right">
+                <label class="blocked-edit"
+                        th:attr="hx-get=@{/admin/practitioner-roles/{id}/dialog(id=${row.id})}"
+                        hx-target="#practitionerRolesDialog"
+                        hx-swap="outerHTML">Rollen zuweisen</label>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</th:block>
+
+<!--
+    The "Rollen zuweisen" centered dialog, loaded fresh on every open (each row's label issues
+    an hx-get that swaps it into #practitionerRolesDialog), so it never shows stale state. The
+    fragment is self-contained: it renders its own hidden #practitionerRolesToggle checkbox
+    (starting checked, so the overlay shows on load) and its own overlay; the ✕ / "Abbrechen" /
+    backdrop labels uncheck that own checkbox to close. The form posts the checked role boxes
+    as roleTokens; hx-include on the role search box keeps in-progress checkbox state while
+    filtering. No script.
+-->
+<th:block th:fragment="dialog">
+    <div id="practitionerRolesDialog">
+        <input type="checkbox" id="practitionerRolesToggle" class="dialog-toggle-checkbox" checked>
+        <div class="dialog-overlay" id="practitionerRolesOverlay">
+            <label class="dialog-backdrop" for="practitionerRolesToggle"></label>
+            <form class="blocked-dialog"
+                    th:attr="hx-post=@{/admin/practitioner-roles/{id}(id=${practitionerId})}"
+                    hx-target="#practitionerRoleFeedback" hx-swap="innerHTML">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="blocked-dialog-header">
+                    <h3 th:text="${dialogTitle}">Rollen zuweisen – Dr. Anna Berger</h3>
+                    <label for="practitionerRolesToggle" class="dialog-close" aria-label="Schließen">✕</label>
+                </div>
+                <div class="blocked-dialog-body">
+                    <th:block th:replace="~{fragments/practitioner-roles :: organizationBox}"></th:block>
+                    <label class="field-label" for="practitionerRoleSearch">Rollen</label>
+                    <input type="text" id="practitionerRoleSearch" name="q" class="dialog-search"
+                            placeholder="Rolle suchen..." autocomplete="off" th:value="${q}"
+                            th:attr="hx-get=@{/admin/practitioner-roles/{id}/dialog(id=${practitionerId})}"
+                            hx-trigger="input changed delay:250ms"
+                            hx-target="#practitionerRoleResults"
+                            hx-swap="innerHTML"
+                            hx-include="closest form"/>
+                    <div class="dialog-role-list" id="practitionerRoleResults">
+                        <th:block th:replace="~{fragments/practitioner-roles :: role-list}"></th:block>
+                    </div>
+                    <div id="practitionerRoleFeedback" class="dialog-feedback"></div>
+                </div>
+                <div class="blocked-dialog-footer">
+                    <label for="practitionerRolesToggle" class="dialog-cancel">Abbrechen</label>
+                    <button type="submit" class="dialog-save">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</th:block>
+
+<!--
+    The filtered, flat role picklist. Returned alone while the user types in the dialog's
+    role search box so only the list is swapped; [checked] reflects the in-progress state.
+    roles = List<RoleAssignmentOption>.
+-->
+<th:block th:fragment="role-list">
+    <div th:if="${#lists.isEmpty(roles)}" class="vis-empty">Keine Rollen gefunden.</div>
+    <label class="role-row" th:each="r : ${roles}">
+        <input type="checkbox" name="roleTokens" th:value="${r.token}" th:checked="${r.checked}"/>
+        <span th:text="${r.display}">Fachärztin/Facharzt für Herzchirurgie</span>
+    </label>
+</th:block>
+
+<!--
+    The dialog's organization combobox. Picking a suggestion swaps the whole box (and thereby
+    the hidden #organizationId the form submits). The box lives in this fragment so the dialog
+    and the search/select responses never drift.
+-->
+<th:block th:fragment="organizationBox">
+    <div class="box-group" id="organizationBox">
+        <label class="field-label" for="organizationInput">Organisation</label>
+        <div class="combobox-container">
+            <input type="text" id="organizationInput" name="organizationQuery" class="combobox-input"
+                    placeholder="Organisation suchen..." autocomplete="off"
+                    th:value="${organizationName}"
+                    hx-get="/admin/practitioner-roles/organizations/search"
+                    hx-trigger="input changed delay:300ms"
+                    hx-target="#organizationSuggestions"
+                    hx-swap="innerHTML"/>
+            <div class="suggestions-dropdown" id="organizationSuggestions"></div>
+        </div>
+        <input type="hidden" id="organizationId" name="organizationId" th:value="${organizationId}">
+    </div>
+</th:block>
+
+<th:block th:fragment="organizationList">
+    <th:block th:if="${!#strings.isEmpty(q)}">
+        <div th:if="${#lists.isEmpty(items)}" class="no-suggestions">Keine Ergebnisse gefunden</div>
+        <div th:each="item : ${items}" class="suggestion-item"
+                th:hx-get="@{/admin/practitioner-roles/organizations/select(id=${item.id},name=${item.name})}"
+                hx-target="#organizationBox" hx-swap="outerHTML">
+            <div th:text="${item.name}">Klinik Favoriten</div>
+        </div>
+    </th:block>
+</th:block>
+
+<!--
+    Save succeeded: the response replaces #practitionerRolesToggle with an unchecked copy
+    (out-of-band), which unchecks the CSS toggle and hides the overlay – the dialog closes.
+    The other out-of-band swaps refresh the notification and the practitioner table.
+-->
+<th:block th:fragment="save-ok">
+    <input type="checkbox" id="practitionerRolesToggle" class="dialog-toggle-checkbox" hx-swap-oob="outerHTML">
+    <div id="notification" class="notification notification-success" hx-swap-oob="true">
+        <strong>Erfolg!</strong> <span th:text="${message}"></span>
+    </div>
+    <div id="practitionerRolesTable" hx-swap-oob="outerHTML">
+        <th:block th:replace="~{fragments/practitioner-roles :: practitioner-table-body}"></th:block>
+    </div>
+</th:block>
+
+<!--
+    Quick role removal succeeded: the notification is swapped out-of-band; the response's
+    #practitionerRolesTable is the main swap content (the chip's ✕ targets it with
+    outerHTML), so the page and the response never drift.
+-->
+<th:block th:fragment="remove-ok">
+    <div id="notification" class="notification notification-success" hx-swap-oob="true">
+        <strong>Erfolg!</strong> <span th:text="${message}"></span>
+    </div>
+    <th:block th:replace="~{fragments/practitioner-roles :: practitioner-table}"></th:block>
+</th:block>
+
+<!--
+    Quick role removal failed: inline error notification, the table stays as it is.
+-->
+<th:block th:fragment="remove-error">
+    <div id="notification" class="notification notification-error" hx-swap-oob="true">
+        <strong>Fehler!</strong> <span th:text="${error}"></span>
+    </div>
+    <th:block th:replace="~{fragments/practitioner-roles :: practitioner-table}"></th:block>
+</th:block>
+
+<!--
+    Save failed: inline error swapped into #practitionerRoleFeedback; the dialog stays open.
+-->
+<th:block th:fragment="save-error">
+    <div class="dialog-error" th:text="${error}">Speichern fehlgeschlagen.</div>
+</th:block>
+
+</body>
+</html>

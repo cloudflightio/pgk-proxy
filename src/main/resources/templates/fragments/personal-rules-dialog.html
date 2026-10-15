@@ -1,0 +1,78 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    The "Regel hinzufügen" slide-in dialog, loaded fresh on every open (the
+    "Regel hinzufügen" label issues an hx-get that swaps it into #personalRulesDialog), so it
+    never shows stale state. The fragment is self-contained: it renders its own hidden
+    #personalRulesToggle checkbox (starting checked, so the overlay shows on load) and its own
+    overlay; the ✕ / "Abbrechen" / backdrop labels uncheck that own checkbox to close. The
+    form posts the checked role boxes as blockedRoles; hx-include on the role search box keeps
+    in-progress checkbox state while filtering. No script.
+-->
+<th:block th:fragment="dialog">
+    <div id="personalRulesDialog">
+        <input type="checkbox" id="personalRulesToggle" class="dialog-toggle-checkbox" checked>
+        <div class="dialog-overlay" id="personalRulesOverlay">
+            <label class="dialog-backdrop" for="personalRulesToggle"></label>
+            <form class="blocked-dialog"
+                    th:attr="hx-post=@{/me/invitation-rules}"
+                    hx-target="#personalRuleFeedback" hx-swap="innerHTML">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="blocked-dialog-header">
+                    <h3 th:text="${dialogTitle}">Regel hinzufügen</h3>
+                    <label for="personalRulesToggle" class="dialog-close" aria-label="Schließen">✕</label>
+                </div>
+                <div class="blocked-dialog-body">
+                    <div id="personalRoleBox">
+                        <label class="field-label" for="personalRoleSearch">Rollen</label>
+                        <input type="text" id="personalRoleSearch" name="q" class="dialog-search"
+                                placeholder="Rolle suchen..." autocomplete="off"
+                                hx-get="/me/invitation-rules/search-roles"
+                                hx-trigger="input changed delay:250ms"
+                                hx-target="#personalRoleResults"
+                                hx-swap="innerHTML"
+                                hx-include="closest form"/>
+                        <!--
+                            The fresh add dialog is empty (roles = []); the role search response
+                            replaces this list with the matching rows, keeping checked boxes
+                            (hx-include sends the currently checked boxes on every keystroke).
+                        -->
+                        <div class="dialog-role-list" id="personalRoleResults">
+                            <label class="role-row" th:each="r : ${roles}">
+                                <input type="checkbox" name="blockedRoles" th:value="${r.id}"
+                                        th:checked="${r.blocked}"/>
+                                <span th:text="${r.codeDisplay}">Fachärztin/Facharzt für Herzchirurgie</span>
+                            </label>
+                        </div>
+                        <div id="personalRuleFeedback" class="dialog-feedback"></div>
+                    </div>
+                </div>
+                <div class="blocked-dialog-footer">
+                    <label for="personalRulesToggle" class="dialog-cancel">Abbrechen</label>
+                    <button type="submit" class="dialog-save">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    The organization tree card. #organizationTree is the swap target of the out-of-band
+    refresh that follows every successful create/update/delete, so the page and the HTMX
+    responses never drift. The whole directory is rendered as a forest of recursive [node]
+    fragments – every organization is editable and deletable.
+-->
+<th:block th:fragment="tree">
+    <div id="organizationTree">
+        <th:block th:replace="~{fragments/organizations :: tree-body}"></th:block>
+    </div>
+</th:block>
+
+<th:block th:fragment="tree-body">
+    <div th:if="${#lists.isEmpty(tree)}" class="vis-empty">Keine Organisation gefunden.</div>
+    <th:block th:if="${!#lists.isEmpty(tree)}">
+        <th:block th:each="root : ${tree}">
+            <th:block th:replace="~{fragments/organizations :: node(${root}, true)}"></th:block>
+        </th:block>
+    </th:block>
+</th:block>
+
+<!--
+    Recursive organization node. The whole row is selectable: clicking the name loads the edit
+    form into the form card. Root organizations cannot be deleted, so only non-root nodes get
+    the ✕ label; it checks the page's #deleteDialogToggle checkbox (which shows the overlay)
+    and hx-gets the styled delete confirmation into #deleteDialog (see [delete-dialog]); no
+    browser confirm is used.
+-->
+<th:block th:fragment="node(org, root)">
+    <div class="org-node" th:classappend="${root} ? 'org-node-root'">
+        <div class="org-node-row">
+            <button type="button" class="org-node-select"
+                    th:attr="hx-get=@{/admin/organizations/{id}/edit(id=${org.id})}"
+                    hx-target="#organizationForm" hx-swap="outerHTML">
+                <span class="org-node-bullet" aria-hidden="true"></span>
+                <span class="org-node-name" th:text="${org.name}">Abteilung Anästhesiologie</span>
+            </button>
+            <label th:if="${!root}" for="deleteDialogToggle" class="org-node-action danger" title="Löschen" aria-label="Löschen"
+                    th:attr="hx-get=@{/admin/organizations/{id}/delete-dialog(id=${org.id})}"
+                    hx-target="#deleteDialog" hx-swap="innerHTML">✕</label>
+        </div>
+        <div class="org-node-children" th:if="${!#lists.isEmpty(org.children)}">
+            <th:block th:each="child : ${org.children}">
+                <th:block th:replace="~{fragments/organizations :: node(${child}, false)}"></th:block>
+            </th:block>
+        </div>
+    </div>
+</th:block>
+
+<!--
+    The delete confirmation dialog panel, following the same pattern as the blocked-roles
+    dialog: the page owns the hidden #deleteDialogToggle checkbox and its overlay; the tree
+    node's ✕ label checks that checkbox and hx-gets this fragment into the page's #deleteDialog
+    container (innerHTML, so the container itself never leaves the overlay). The panel is
+    guarded so it renders nothing unless a real organization was resolved – it can therefore
+    never appear inline in the form card. The form posts the delete; on success the response
+    unchecks the toggle out-of-band (closing the dialog), refreshes the tree and shows a
+    notification. No script.
+-->
+<th:block th:fragment="delete-dialog">
+    <form class="blocked-dialog confirm-dialog" th:if="${!#strings.isEmpty(deleteOrganizationId)}"
+            th:attr="hx-post=@{/admin/organizations/{id}/delete(id=${deleteOrganizationId})}"
+            hx-target="#deleteDialogFeedback" hx-swap="innerHTML">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="blocked-dialog-header">
+            <h3>Organisation löschen</h3>
+            <label for="deleteDialogToggle" class="dialog-close" aria-label="Schließen">✕</label>
+        </div>
+        <div class="blocked-dialog-body">
+            <p class="confirm-text">
+                Soll die Organisation
+                „<b th:text="${deleteOrganizationName}">Abteilung Anästhesiologie</b>“
+                wirklich gelöscht werden?
+            </p>
+            <p class="confirm-hint">Die Aktion kann nicht rückgängig gemacht werden.</p>
+            <div id="deleteDialogFeedback" class="dialog-feedback"></div>
+        </div>
+        <div class="blocked-dialog-footer">
+            <label for="deleteDialogToggle" class="dialog-cancel">Abbrechen</label>
+            <button type="submit" class="dialog-save">Löschen</button>
+        </div>
+    </form>
+</th:block>
+
+<!--
+    The "Angaben zur Organisation" card: an add form (default) or – when loaded via the edit
+    button – an edit form. The parent combobox lives in its own #parentBox fragment so the
+    suggestion search/select responses can never drift from the form, and is hidden while an
+    organization without a parent (a top-level organization) is being edited. The form posts to
+    the create or the update endpoint depending on [formMode]; the CSRF token travels inside
+    the form because the fragment is often loaded standalone via hx-get.
+-->
+<th:block th:fragment="form">
+    <div id="organizationForm">
+        <div class="dialog-error" th:if="${error}" th:text="${error}">Speichern fehlgeschlagen.</div>
+        <form class="org-form"
+                th:attr="hx-post=${formMode == 'edit'} ? @{/admin/organizations/{id}(id=${organizationId})} : @{/admin/organizations}"
+                hx-target="#organizationForm" hx-swap="outerHTML">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div class="org-field">
+                <label class="field-label" for="orgName">Name</label>
+                <input type="text" id="orgName" name="name" class="combobox-input"
+                        th:value="${organizationName}" placeholder="Name der Organisation"
+                        autocomplete="off" required/>
+            </div>
+            <th:block th:if="${formMode != 'edit' or !#strings.isEmpty(parentId)}">
+                <th:block th:replace="~{fragments/organizations :: parentBox}"></th:block>
+            </th:block>
+            <th:block th:replace="~{fragments/organizations :: typeBox}"></th:block>
+            <div class="org-actions">
+                <button type="button" class="cancel-btn"
+                        hx-get="/admin/organizations/form"
+                        hx-target="#organizationForm" hx-swap="outerHTML">Abbrechen</button>
+                <button type="submit" class="post-btn"
+                        th:text="${formMode == 'edit'} ? 'Speichern' : '+ Hinzufügen'">+ Hinzufügen</button>
+            </div>
+        </form>
+    </div>
+</th:block>
+
+<!--
+    The parent ("Übergeordnete Organisation") combobox. Typing loads organization suggestions
+    from the already implemented suggestion lookup; picking one swaps this box (and the hidden
+    #parentId the form submits) via outerHTML.
+-->
+<th:block th:fragment="parentBox">
+    <div class="org-field" id="parentBox">
+        <label class="field-label" for="orgParent">Übergeordnete Organisation</label>
+        <div class="combobox-container">
+            <input type="text" id="orgParent" name="q" class="combobox-input"
+                    placeholder="Organisation suchen..." autocomplete="off"
+                    th:value="${parentName}"
+                    hx-get="/admin/organizations/parents/search"
+                    hx-trigger="input changed delay:300ms"
+                    hx-target="#parentSuggestions"
+                    hx-swap="innerHTML"/>
+            <div class="suggestions-dropdown" id="parentSuggestions"></div>
+        </div>
+        <input type="hidden" id="parentId" name="parentId" th:value="${parentId}">
+    </div>
+</th:block>
+
+<th:block th:fragment="parent-suggestions">
+    <th:block th:if="${!#strings.isEmpty(q)}">
+        <div th:if="${#lists.isEmpty(items)}" class="no-suggestions">Keine Ergebnisse gefunden</div>
+        <div th:each="item : ${items}" class="suggestion-item"
+                th:attr="hx-get=@{/admin/organizations/parents/select(id=${item.id},name=${item.name})}"
+                hx-target="#parentBox" hx-swap="outerHTML">
+            <div th:text="${item.name}">Klinik Favoriten</div>
+        </div>
+    </th:block>
+</th:block>
+
+<!--
+    The "Art der Einrichtung" combobox. Typing filters the local organization type valueset;
+    picking a suggestion swaps this box (and the hidden #typeCode the form submits).
+-->
+<th:block th:fragment="typeBox">
+    <div class="org-field" id="typeBox">
+        <label class="field-label" for="orgType">Art der Einrichtung</label>
+        <div class="combobox-container">
+            <input type="text" id="orgType" name="q" class="combobox-input"
+                    placeholder="Art auswählen..." autocomplete="off"
+                    th:value="${typeDisplay}"
+                    hx-get="/admin/organizations/types/search"
+                    hx-trigger="input changed delay:300ms"
+                    hx-target="#typeSuggestions"
+                    hx-swap="innerHTML"/>
+            <div class="suggestions-dropdown" id="typeSuggestions"></div>
+        </div>
+        <input type="hidden" id="typeCode" name="typeCode" th:value="${typeCode}">
+    </div>
+</th:block>
+
+<th:block th:fragment="type-suggestions">
+    <th:block th:if="${!#strings.isEmpty(q)}">
+        <div th:if="${#lists.isEmpty(items)}" class="no-suggestions">Keine Ergebnisse gefunden</div>
+        <div th:each="item : ${items}" class="suggestion-item"
+                th:attr="hx-get=@{/admin/organizations/types/select(code=${item.code})}"
+                hx-target="#typeBox" hx-swap="outerHTML">
+            <div th:text="${item.display}">Allgemeine Krankenanstalt</div>
+        </div>
+    </th:block>
+</th:block>
+
+<!--
+    Create/update succeeded: the fresh add form replaces the form card (main content), the
+    tree is refreshed out-of-band and a success notification is shown.
+-->
+<th:block th:fragment="save-ok">
+    <th:block th:replace="~{fragments/organizations :: form}"></th:block>
+    <div id="organizationTree" hx-swap-oob="outerHTML">
+        <th:block th:replace="~{fragments/organizations :: tree-body}"></th:block>
+    </div>
+    <div id="notification" class="notification notification-success" hx-swap-oob="true">
+        <strong>Erfolg!</strong> <span th:text="${message}"></span>
+    </div>
+</th:block>
+
+<!--
+    Create/update failed: the form is re-rendered with the submitted values and an inline
+    error; the tree stays untouched.
+-->
+<th:block th:fragment="save-error">
+    <th:block th:replace="~{fragments/organizations :: form}"></th:block>
+</th:block>
+
+<!--
+    Delete succeeded: the response replaces #deleteDialogToggle with an unchecked copy
+    (out-of-band), which unchecks the CSS toggle and hides the overlay – the dialog closes.
+    The other out-of-band swaps refresh the notification and the organization tree.
+-->
+<th:block th:fragment="delete-ok">
+    <input type="checkbox" id="deleteDialogToggle" class="dialog-toggle-checkbox" hx-swap-oob="outerHTML">
+    <div id="notification" class="notification notification-success" hx-swap-oob="true">
+        <strong>Erfolg!</strong> <span th:text="${message}">Organisation gelöscht.</span>
+    </div>
+    <div id="organizationTree" hx-swap-oob="outerHTML">
+        <th:block th:replace="~{fragments/organizations :: tree-body}"></th:block>
+    </div>
+</th:block>
+
+<!--
+    Delete failed: inline error swapped into #deleteDialogFeedback; the dialog stays open.
+-->
+<th:block th:fragment="delete-error">
+    <div class="dialog-error" th:text="${error}">Löschen fehlgeschlagen.</div>
+</th:block>
+
+</body>
+</html>

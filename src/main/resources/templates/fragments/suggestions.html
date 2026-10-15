@@ -1,0 +1,57 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="practitionerList">
+    <th:block th:if="${!#strings.isEmpty(q)}">
+        <div th:if="${#lists.isEmpty(items)}" class="no-suggestions">Keine Ergebnisse gefunden</div>
+        <div th:each="item : ${items}" class="suggestion-item"
+                th:hx-get="@{/api/practitioners/select(id=${item.id},name=${item.name},organizationId=${item.organizationId},organizationName=${item.organizationName})}"
+                hx-target="#practitionerBox" hx-swap="outerHTML">
+            <div th:text="${item.name}"></div>
+            <div style="font-size: 12px; color: #999;" th:text="'Trust Level: ' + ${item.trustLevel}"></div>
+        </div>
+    </th:block>
+</th:block>
+
+<th:block th:fragment="organizationList">
+    <th:block th:if="${!#strings.isEmpty(q)}">
+        <div th:if="${#lists.isEmpty(items)}" class="no-suggestions">Keine Ergebnisse gefunden</div>
+        <div th:each="item : ${items}" class="suggestion-item"
+                th:hx-get="@{/api/organizations/select(id=${item.id},name=${item.name})}"
+                hx-target="#organizationBox" hx-swap="outerHTML">
+            <div th:text="${item.name}"></div>
+        </div>
+    </th:block>
+</th:block>
+
+<th:block th:fragment="roleList">
+    <th:block th:if="${!#strings.isEmpty(q)}">
+        <div th:if="${#lists.isEmpty(items)}" class="no-suggestions">Keine Ergebnisse gefunden</div>
+        <div th:each="item : ${items}" class="suggestion-item"
+                th:hx-get="@{/api/roles/select(id=${item.id})}"
+                hx-include="#roleIds" hx-target="#roleBox" hx-swap="outerHTML">
+            <div th:text="${item.codeDisplay}"></div>
+            <div th:if="${!#strings.isEmpty(item.title)}" style="font-size: 12px; color: #999;"
+                    th:text="${item.title}"></div>
+        </div>
+    </th:block>
+</th:block>
+
+</body>
+</html>

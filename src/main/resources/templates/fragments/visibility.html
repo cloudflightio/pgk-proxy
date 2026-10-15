@@ -1,0 +1,59 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  th:fragment     → marks this element as a named fragment the controller can return
+  th:classappend  → adds "on" to the class list when public is true (CSS drives the visual)
+  th:attr         → builds the POST URL; entryId is the FHIR resource id (e.g. Practitioner/1),
+                    which Thymeleaf URL-encodes inside the query string
+  hx-target       → "closest .seg" replaces the segment this span lives in
+  hx-swap         → "outerHTML" replaces the whole <div class="seg">, not just the span
+-->
+
+<div th:fragment="segment(entryId, public)"
+        class="seg">
+    <span th:classappend="${public} ? 'on'"
+            th:attr="hx-post=@{/admin/visibility(id=${entryId}, visibility='public')}"
+            hx-target="closest .seg"
+            hx-swap="outerHTML"
+            title="Öffentlich sichtbar"
+            style="cursor: pointer">Öffentlich</span>
+    <span th:classappend="${!public} ? 'on'"
+            th:attr="hx-post=@{/admin/visibility(id=${entryId}, visibility='internal')}"
+            hx-target="closest .seg"
+            hx-swap="outerHTML"
+            title="Nur intern sichtbar"
+            style="cursor: pointer">Intern</span>
+</div>
+
+<!--
+  Returned when a visibility change fails to persist. Renders the segment back in its
+  UNCHANGED state (public = old value) so HTMX does not wipe the table cell, plus an
+  out-of-band error notification.
+-->
+<th:block th:fragment="segment-error">
+    <th:block th:replace="~{fragments/visibility :: segment(entryId=${entryId}, public=${public})}"></th:block>
+    <div id="notification" class="notification notification-error" hx-swap-oob="true">
+        <strong>Fehler!</strong> <span th:text="${error}"></span>
+    </div>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "default_server_config": {
+    "m.homeserver": {
+      "base_url": "https://partner.traefik.me",
+      "server_name": "partner.traefik.me"
+    }
+  },
+  "disable_guests": true,
+  "brand": "PGK Partner Test"
+}

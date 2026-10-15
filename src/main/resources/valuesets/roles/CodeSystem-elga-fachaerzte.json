@@ -1,0 +1,500 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "elga-fachaerzte",
+  "url": "https://termgit.elga.gv.at/CodeSystem/elga-fachaerzte",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "urn:ietf:rfc:3986",
+      "value": "urn:oid:1.2.40.0.34.5.160"
+    }
+  ],
+  "version": "1.3.0+20260128",
+  "name": "elga-fachaerzte",
+  "title": "ELGA_Fachaerzte",
+  "status": "active",
+  "date": "2026-01-28",
+  "publisher": "ELGA GmbH",
+  "contact": [
+    {
+      "name": "http://www.elga.gv.at",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "http://www.elga.gv.at"
+        }
+      ]
+    }
+  ],
+  "description": "Berufsbezeichnungen f\u00fcr Fach\u00e4rzte lt. \u00c4rztinnen-/\u00c4rzte-Ausbildungsordnung",
+  "content": "complete",
+  "count": 69,
+  "property": [
+    {
+      "code": "status",
+      "type": "code"
+    },
+    {
+      "code": "hints",
+      "type": "string"
+    }
+  ],
+  "concept": [
+    {
+      "code": "102",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr An\u00e4sthesiologie und Intensivmedizin"
+    },
+    {
+      "code": "103",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Anatomie"
+    },
+    {
+      "code": "104",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Arbeitsmedizin und angewandte Physiologie"
+    },
+    {
+      "code": "105",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Augenheilkunde und Optometrie"
+    },
+    {
+      "code": "106",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Transfusionsmedizin"
+    },
+    {
+      "code": "107",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Chirurgie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "108",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Frauenheilkunde und Geburtshilfe"
+    },
+    {
+      "code": "109",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Gerichtsmedizin"
+    },
+    {
+      "code": "110",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Hals-, Nasen- und Ohrenheilkunde"
+    },
+    {
+      "code": "111",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Haut- und Geschlechtskrankheiten"
+    },
+    {
+      "code": "112",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Herzchirurgie"
+    },
+    {
+      "code": "113",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Histologie, Embryologie und Zellbiologie"
+    },
+    {
+      "code": "114",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Klinische Mikrobiologie und Hygiene"
+    },
+    {
+      "code": "115",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Klinische Immunologie"
+    },
+    {
+      "code": "116",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin"
+    },
+    {
+      "code": "117",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Kinder- und Jugendchirurgie"
+    },
+    {
+      "code": "118",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Kinder- und Jugendheilkunde"
+    },
+    {
+      "code": "119",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Kinder- und Jugendpsychiatrie und Psychotherapeutische Medizin"
+    },
+    {
+      "code": "120",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Lungenkrankheiten",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "121",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Medizinische Biologie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "122",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Medizinische Biophysik",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "123",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Medizinische Genetik"
+    },
+    {
+      "code": "124",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Medizinische und Chemische Labordiagnostik"
+    },
+    {
+      "code": "125",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Medizinische Leistungsphysiologie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "126",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Mikrobiologisch-Serologische Labordiagnostik",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "127",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Mund-, Kiefer- und Gesichtschirurgie"
+    },
+    {
+      "code": "128",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Neurobiologie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "129",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Neurochirurgie"
+    },
+    {
+      "code": "130",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Neurologie"
+    },
+    {
+      "code": "131",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Neurologie und Psychiatrie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "132",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Klinische Pathologie und Neuropathologie"
+    },
+    {
+      "code": "133",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Nuklearmedizin"
+    },
+    {
+      "code": "134",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Orthop\u00e4die und Traumatologie"
+    },
+    {
+      "code": "135",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Pathologie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "136",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Pathophysiologie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "137",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Pharmakologie und Toxikologie"
+    },
+    {
+      "code": "138",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Physikalische Medizin und Allgemeine Rehabilitation"
+    },
+    {
+      "code": "139",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Physiologie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "140",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Plastische, Rekonstruktive und \u00c4sthetische Chirurgie"
+    },
+    {
+      "code": "141",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Psychiatrie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "142",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Psychiatrie und Neurologie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "143",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Psychiatrie und Psychotherapeutische Medizin"
+    },
+    {
+      "code": "144",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Radiologie"
+    },
+    {
+      "code": "145",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Sozialmedizin",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "146",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Klinische Immunologie und Spezifische Prophylaxe und Tropenmedizin"
+    },
+    {
+      "code": "147",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Strahlentherapie-Radioonkologie"
+    },
+    {
+      "code": "148",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Theoretische Sonderf\u00e4cher",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "149",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Thoraxchirurgie"
+    },
+    {
+      "code": "150",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Tumorbiologie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "151",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Unfallchirurgie",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "152",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Urologie"
+    },
+    {
+      "code": "153",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Klinische Mikrobiologie und Virologie"
+    },
+    {
+      "code": "154",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Zahn-, Mund- und Kieferheilkunde",
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "retired"
+        },
+        {
+          "code": "hints",
+          "valueString": "DEPRECATED"
+        }
+      ]
+    },
+    {
+      "code": "155",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Allgemeinchirurgie und Viszeralchirurgie"
+    },
+    {
+      "code": "156",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Allgemeinchirurgie und Gef\u00e4\u00dfchirurgie"
+    },
+    {
+      "code": "157",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Angiologie"
+    },
+    {
+      "code": "158",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Endokrinologie und Diabetologie"
+    },
+    {
+      "code": "159",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Gastroenterologie und Hepatologie"
+    },
+    {
+      "code": "160",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und H\u00e4matologie und internistische Onkologie"
+    },
+    {
+      "code": "161",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Infektiologie"
+    },
+    {
+      "code": "162",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Intensivmedizin"
+    },
+    {
+      "code": "163",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Kardiologie"
+    },
+    {
+      "code": "164",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Nephrologie"
+    },
+    {
+      "code": "165",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Pneumologie"
+    },
+    {
+      "code": "166",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Innere Medizin und Rheumatologie"
+    },
+    {
+      "code": "167",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Klinische Pathologie und Molekularpathologie"
+    },
+    {
+      "code": "168",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Public Health"
+    },
+    {
+      "code": "169",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Physiologie und Pathophysiologie"
+    },
+    {
+      "code": "170",
+      "display": "Fach\u00e4rztin/Facharzt f\u00fcr Orthop\u00e4die und orthop\u00e4dische Chirurgie"
+    }
+  ]
+}

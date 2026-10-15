@@ -1,0 +1,18 @@
+# Normalize all text files to LF endings. This prevents spurious
+# line-ending churn that causes unnecessary merge/pull conflicts when
+# contributors work across Windows (CRLF) and Linux/macOS (LF) checkouts.
+* text=auto eol=lf
+
+# Keep binary files untouched
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary

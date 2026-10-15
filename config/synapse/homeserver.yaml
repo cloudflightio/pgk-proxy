@@ -1,0 +1,143 @@
+server_name: "matrix.traefik.me"
+public_baseurl: "https://matrix.traefik.me"
+pid_file: /data/homeserver.pid
+
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+  # Federation listener - Traefik forwards 8448 -> 8448 so the two servers can federate
+  - port: 8448
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [federation]
+        compress: false
+
+federation:
+  destination_min_retry_interval: 5s
+  destination_retry_multiplier: 1
+  destination_max_retry_interval: 10s
+  max_short_retries: 3
+  max_long_retries: 5
+
+database:
+  name: psycopg2
+  args:
+    user: synapse
+    password: synapse
+    database: synapse
+    host: matrix-db
+    cp_min: 5
+    cp_max: 10
+
+log_config: "/data/matrix.traefik.me.log.config"
+
+media_store_path: /data/media_store
+uploads_path: /data/uploads
+
+# Only allow login/registration through Keycloak
+enable_registration: false
+
+# Disable federation for isolated PoC
+# federation_domain_whitelist: []
+
+# Allow viewing the public room directory
+allow_public_rooms_without_auth: false
+allow_public_rooms_over_federation: false
+
+# Force end-to-end encryption on all locally-created rooms ("all" | "invite" | "off")
+encryption_enabled_by_default_for_room_type: all
+
+# Allow federation to the partner on a private Docker network (SSRF guard would
+# otherwise block private IPs). 172.16.0.0/12 covers all Docker bridge subnets
+# and the Docker host gateway.
+ip_range_whitelist:
+  - '172.16.0.0/12'
+
+# Disable federation rate limiting (test-only)
+rc_federation:
+  window_size: 1000
+  sleep_limit: 1000
+  sleep_delay: 1
+  reject_limit: 1000000
+  concurrent: 3
+
+
+# Auto-join new users to the messaging room
+# auto_join_rooms:
+#  - "#messaging:matrix.traefik.me"
+
+# Disable rate limiting for PoC
+rc_message:
+  per_second: 1000
+  burst_count: 1000
+
+# Disable invite rate limiting for PoC (rc_invites.per_user, rc_invites.per_room)
+# todo: change to sensible values before going live
+rc_invites:
+  per_room:
+    per_second: 1000
+    burst_count: 1000
+  per_user:
+    per_second: 1000
+    burst_count: 1000
+
+rc_registration:
+  per_second: 1000
+  burst_count: 1000
+
+rc_login:
+  address:
+    per_second: 1000
+    burst_count: 1000
+  account:
+    per_second: 1000
+    burst_count: 1000
+  failed_attempts:
+    per_second: 1000
+    burst_count: 1000
+
+# Signing key (will be generated on first run)
+signing_key_path: "/data/matrix.traefik.me.signing.key"
+
+# Trusted key servers (empty for isolated setup)
+trusted_key_servers: []
+
+# Suppress key server warning
+suppress_key_server_warning: true
+
+# Report stats
+report_stats: false
+
+# Max upload size
+max_upload_size: 50M
+
+# URL preview (disabled)
+url_preview_enabled: false
+
+macaroon_secret_key: "poc-secret-key-change-in-production"
+form_secret: "poc-form-secret-change-in-production"
+
+oidc_providers:
+  - idp_id: keycloak
+    idp_name: PGK Keycloak
+    issuer: https://idp.traefik.me/realms/pgk
+    client_id: pgk-proxy
+    client_secret: Ybg!E1S#@P&d
+    scopes:
+      - openid
+      - profile
+    backchannel_logout_enabled: true
+    user_mapping_provider:
+      config:
+        subject_claim: "sub"
+        localpart_template: "{{ user.mxid }}"
+        display_name_template: "{{ user.displayname }}"
+        confirm_localpart: false
+    allow_existing_users: false

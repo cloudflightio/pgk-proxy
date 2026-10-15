@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright 2026 MA 01 - Wien Digital
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <th:block th:fragment="panel">
+        <div id="existingRolesPanel" class="box-group existing-roles-panel" th:attr="hx-swap-oob=${panelOob}">
+            <label th:if="${not #lists.isEmpty(existingRoles)}">Bestehende Rollen</label>
+
+            <div th:each="row : ${existingRoles}" class="existing-role-row">
+                <div th:each="c : ${row.codes}" class="selected-item"
+                     th:classappend="${c.markedForRemoval} ? 'selected-item-removed' : ''">
+                    <span th:text="${c.display} + ' — ' + ${row.organizationChain}"></span>
+
+                    <button type="button" th:if="${not c.markedForRemoval}" title="Zum Entfernen vormerken"
+                            th:hx-get="@{/api/practitioner-roles/mark-removal(practitionerId=${practitionerId},removalKey=${c.removalKey},organizationId=${rootOrganizationId})}"
+                            hx-include="#removedRoleIds" hx-target="#existingRolesPanel" hx-swap="outerHTML">×</button>
+
+                    <button type="button" th:if="${c.markedForRemoval}" title="Entfernen rückgängig machen"
+                            th:hx-get="@{/api/practitioner-roles/undo-removal(practitionerId=${practitionerId},removalKey=${c.removalKey},organizationId=${rootOrganizationId})}"
+                            hx-include="#removedRoleIds" hx-target="#existingRolesPanel" hx-swap="outerHTML">↺</button>
+                </div>
+            </div>
+
+            <p th:if="${not #lists.isEmpty(removedRoleIds)}" class="pending-removal-hint">
+                Vorgemerkte Entfernungen werden mit „Hinzufügen“ gespeichert.
+            </p>
+
+            <input type="hidden" id="removedRoleIds" name="removedRoleIds"
+                   th:value="${#strings.listJoin(removedRoleIds, ',')}">
+        </div>
+    </th:block>
+</body>
+</html>
