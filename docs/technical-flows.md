@@ -6,7 +6,8 @@ konkreten Beispielanfragen:
 1. **Föderierte Benutzersuche** über den Proxy und den FHIR-Server
    (`/_matrix/client/v3/user_directory/search`)
 2. **Prüfung einer föderierten Raumeinladung** (`/_matrix/federation/v2/invite`) sowie die
-   analoge Prüfung ausgehender Einladungen (`createRoom` / `rooms/{roomId}/invite`)
+   analoge Prüfung ausgehender Einladungen (`createRoom` / `rooms/{roomId}/invite`).
+   Die Legacy-Route `/_matrix/federation/v1/invite` ist deaktiviert und antwortet mit 403.
 
 Verwandte Dokumente: [Setup](setup.md), [Benutzerhandbuch](user-guide.md),
 [Administrationshandbuch](admin-guide.md), [FHIR-Leitfaden](fhir-guide.md).
@@ -19,6 +20,7 @@ Traefik leitet `matrix.traefik.me` mit Ausnahme der Proxy-Pfade direkt an den Ma
 - `/_matrix/client/v3/user_directory/search` → **pgk-proxy**
 - `/_matrix/client/v3/createRoom`, `/_matrix/client/v3/rooms/{roomId}/invite` → **pgk-proxy**
 - `/_matrix/federation/v2/invite` (Client-Traffic 443 und Föderations-Traffic 8448) → **pgk-proxy**
+- `/_matrix/federation/v1/invite` (Legacy, deaktiviert) → **pgk-proxy** (antwortet immer mit 403)
 - alles andere → Matrix-Server
 
 ---
