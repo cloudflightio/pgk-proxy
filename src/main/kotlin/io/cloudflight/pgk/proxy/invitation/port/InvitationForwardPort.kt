@@ -23,6 +23,8 @@ interface InvitationForwardPort {
         roomId: String,
         eventId: String,
         originalUri: String,
+        originalServerName: String,
+        originalUrl: String,
         authorization: String?,
         body: String,
     ): ResponseEntity<String>

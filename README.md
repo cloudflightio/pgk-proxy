@@ -47,8 +47,8 @@ Die Dokumentation ist nach Themen in Unterordner `docs/` aufgeteilt:
 2. Keycloak-Provider bauen: `./gradlew :keycloak-provider:keycloakProviderJar`
 3. Stack starten: `docker-compose up -d`
 4. Proxy lokal starten (Profil `local`)
-5. Im IDP https://idp.element.traefik.me/admin mit (`admin`/ `admin`) einloggen und im `pgk` Realm neue User anlegen.
-5. Unter https://element.traefik.me mit diesen Usern anmelden und loslegen.
+5. Im IDP https://idp.traefik.me/admin mit (`admin`/ `admin`) einloggen und im `pgk` Realm neue User anlegen.
+6. Unter https://element.traefik.me mit diesen Usern anmelden und loslegen.
 
 Ausführliche Schritte: [docs/setup.md](docs/setup.md).
 

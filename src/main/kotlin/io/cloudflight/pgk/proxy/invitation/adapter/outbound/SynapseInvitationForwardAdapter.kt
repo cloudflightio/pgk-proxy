@@ -17,13 +17,11 @@
 package io.cloudflight.pgk.proxy.invitation.adapter.outbound
 
 import io.cloudflight.pgk.proxy.config.ProxyProperties
-import io.cloudflight.pgk.proxy.invitation.mapper.InvitationRequestMapper
 import io.cloudflight.pgk.proxy.invitation.port.InvitationForwardPort
 import io.cloudflight.pgk.proxy.shared.events.InvitationForwardFailedEvent
 import io.cloudflight.pgk.proxy.shared.events.InvitationForwardedEvent
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
@@ -47,7 +45,7 @@ import java.net.URI
 class SynapseInvitationForwardAdapter(
     private val restClient: RestClient,
     private val applicationEvents: ApplicationEventPublisher,
-    private val requestMapper: InvitationRequestMapper,
+    private val outgoingUrlMapper: OutgoingUrlMapper,
     private val properties: ProxyProperties
 ) : InvitationForwardPort {
 
@@ -55,17 +53,15 @@ class SynapseInvitationForwardAdapter(
         roomId: String,
         eventId: String,
         originalUri: String,
+        originalServerName: String,
+        originalUrl: String,
         authorization: String?,
         body: String,
     ): ResponseEntity<String> {
-        val destination = try {
-            requestMapper.fromPdu(body).recipient.domain
+        val destination = if (isInboundRequest(originalServerName)) {
             buildDestination(originalUri)
-        } catch (e: IllegalArgumentException) {
-            applicationEvents.publishEvent(
-                InvitationForwardFailedEvent(roomId, eventId, "unknown", "invite PDU has no recipient")
-            )
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build()
+        } else {
+            outgoingUrlMapper.mapToOutgoingUrl(originalUrl)
         }
         return try {
             val request = restClient.put()
@@ -95,6 +91,9 @@ class SynapseInvitationForwardAdapter(
             ResponseEntity.internalServerError().build()
         }
     }
+
+    private fun isInboundRequest(originalServerName: String): Boolean =
+        originalServerName == properties.federation.matrixDomain
 
     private fun buildDestination(originalUri: String): String =
         properties.federation.forwardBaseUrl.trimEnd('/') + originalUri
