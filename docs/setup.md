@@ -142,7 +142,8 @@ Die Föderation zwischen den beiden Servern läuft über Port **8448** durch Tra
 (`Host(matrix.traefik.me)` / `Host(partner.traefik.me)`); beide Synapse-Container betreiben einen
 eigenen Föderations-Listener auf 8448. Eingehende Föderations-Einladungen an
 `matrix.traefik.me` werden vom pgk-proxy abgefangen (`/_matrix/federation/v2/invite` → Proxy),
-der vor der Weiterleitung an Synapse die Föderations-Whitelist prüft.
+der vor der Weiterleitung an Synapse die Föderations-Whitelist prüft. Die Legacy-Route
+`/_matrix/federation/v1/invite` ist deaktiviert und antwortet immer mit 403.
 
 > **Föderations-Auflösung der Peers:** Da `*.traefik.me` über den öffentlichen DNS auf
 > `127.0.0.1` zeigt, erreichen sich die Peers nie über den öffentlichen Eintrag. Der

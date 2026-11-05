@@ -20,6 +20,7 @@ Matrix-Client (Element, Element X, FluffyChat …)
    │  ├─ /_matrix/client/v3/user_directory/search ──► pgk-proxy ──► FHIR (Provider Directory)
    │  ├─ /_matrix/client/v3/createRoom, /_matrix/client/v3/rooms/{roomId}/invite (Ausgangsprüfung) ──► pgk-proxy ──► Matrix-Server
    │  ├─ /_matrix/federation/v2/invite* (Einlassprüfung) ──► pgk-proxy ──► Matrix-Server
+   │  ├─ /_matrix/federation/v1/invite* (Legacy, deaktiviert) ──► pgk-proxy (403)
    │  └─ alles andere ──► Matrix Server
    ▼
 Matrix-Server ◄── Föderation (8448) ──► externe föderierte Matrix-Server
@@ -61,7 +62,8 @@ Ausführliche Schritte: [docs/setup.md](docs/setup.md).
   erstellt/aktualisiert/löscht.
 - **Föderation:** Föderierte Einladungen an `matrix.traefik.me` laufen über
   u.a. `/_matrix/federation/v2/invite` durch den Proxy, der Whitelist-, Organisations- und
-  persönliche Regeln prüft, bevor er an Synapse weiterleitet.
+  persönliche Regeln prüft, bevor er an Synapse weiterleitet. Die Legacy-Route
+  `/_matrix/federation/v1/invite` ist deaktiviert und antwortet immer mit 403.
 
 ## Lizenz
 
