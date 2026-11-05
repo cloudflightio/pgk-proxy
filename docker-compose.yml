@@ -34,7 +34,9 @@ services:
     extra_hosts:
       - "partner.traefik.me:host-gateway"
     networks:
-      - messaging-net
+      messaging-net:
+        aliases:
+          - matrix.traefik.me
 
   # Matrix initialization - generate signing key, build CA bundle and set permissions
   matrix-init:
@@ -455,7 +457,6 @@ services:
       messaging-net:
         aliases:
           - idp.traefik.me
-          - matrix.traefik.me
           - element.traefik.me
           - partner.traefik.me
       partner-net:
@@ -466,16 +467,22 @@ services:
           - matrix.traefik.me
 
   egress-proxy:
-    image: ubuntu/squid:latest
+    build:
+      context: ./config/squid/conf
+      dockerfile: Dockerfile
     container_name: egress-proxy
     restart: unless-stopped
     entrypoint: [ "/bin/sh", "-c" ]
+    depends_on:
+      matrix:
+        condition: service_healthy
     command:
       - |
         rm -f /run/squid.pid
         mkdir -p /etc/squid/dynamic
         touch /etc/squid/dynamic/whitelist.txt
         chmod 666 /dev/stdout /dev/stderr
+        chmod 550 /usr/local/bin/matrix_origin_helper.py
         echo "[$(date)] Starting Squid..."
         squid -f /etc/squid/squid.conf -NYC &
         SQUID_PID=$$!
@@ -492,11 +499,14 @@ services:
         done
     volumes:
       - ./config/squid/conf/squid.conf:/etc/squid/squid.conf:ro
+      - ./config/squid/conf/matrix_origin_helper.py:/usr/local/bin/matrix_origin_helper.py:ro
       - ./config/squid/whitelist/:/etc/squid/dynamic
     extra_hosts:
       - "partner.traefik.me:host-gateway"
     networks:
       - messaging-net
+    labels:
+      - traefik.enable=true
 
 networks:
   messaging-net:

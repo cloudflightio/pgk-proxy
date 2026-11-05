@@ -38,7 +38,7 @@ http:
       rule: "Host(`matrix.traefik.me`)"
       entrypoints: [federation]
       tls: true
-      service: matrix-synapse
+      service: egress-proxy
     # Federation to partner.traefik.me - the first hop goes to the proxy for the policy check,
     # forwarded copies go straight to the partner Synapse (directly, not through Traefik). The
     # legacy v1 invite endpoint is disabled by the proxy (403) and never reaches Synapse.
@@ -66,6 +66,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://matrix-partner:8008"
+    egress-proxy:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://egress-proxy:3129"
 
 tls:
   certificates:

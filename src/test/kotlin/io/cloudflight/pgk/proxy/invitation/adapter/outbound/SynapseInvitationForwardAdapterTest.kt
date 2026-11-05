@@ -44,13 +44,18 @@ class SynapseInvitationForwardAdapterTest {
 
     private val applicationEvents: ApplicationEventPublisher = mock()
 
-    private val inviteBody = """{"origin":"matrix.traefik.me","event":{"sender":"@alice:matrix.traefik.me","state_key":"@bob:matrix.traefik.me"}}"""
+    private val inviteBody =
+        """{"origin":"matrix.traefik.me","event":{"sender":"@alice:matrix.traefik.me","state_key":"@bob:matrix.traefik.me"}}"""
 
-    private fun adapterWithServer(): Pair<SynapseInvitationForwardAdapter, MockRestServiceServer> {
+    private fun adapterWithServer(
+        outgoingUrlMapper: OutgoingUrlMapper = DefaultOutgoingUrlMapper()
+    ): Pair<SynapseInvitationForwardAdapter, MockRestServiceServer> {
         val builder = RestClient.builder()
         val server = MockRestServiceServer.bindTo(builder).build()
-        val properties = ProxyProperties(federation = ProxyProperties.FederationProperties(forwardBaseUrl = "http://synapse:8008"))
-        val adapter = SynapseInvitationForwardAdapter(builder.build(), applicationEvents, InvitationRequestMapper(), properties)
+        val properties =
+            ProxyProperties(federation = ProxyProperties.FederationProperties(forwardBaseUrl = "http://synapse:8008"))
+        val adapter =
+            SynapseInvitationForwardAdapter(builder.build(), applicationEvents, outgoingUrlMapper, properties)
         return adapter to server
     }
 
@@ -67,7 +72,13 @@ class SynapseInvitationForwardAdapterTest {
             .andRespond(withSuccess("""{"event":{},"origin":"matrix.traefik.me"}""", MediaType.APPLICATION_JSON))
 
         val response = adapter.forwardInvite(
-            "room1", "evt1", "/_matrix/federation/v2/invite/room1/evt1", "Bearer s3cret", inviteBody
+            "room1",
+            "evt1",
+            "/_matrix/federation/v2/invite/room1/evt1",
+            "matrix.traefik.me",
+            "https://matrix.traefik.me/_matrix/federation/v2/invite/room1/evt1",
+            "Bearer s3cret",
+            inviteBody
         )
 
         assertEquals(200, response.statusCode.value())
@@ -89,27 +100,17 @@ class SynapseInvitationForwardAdapterTest {
             .andRespond(withSuccess("""{"event":{},"origin":"matrix.traefik.me"}""", MediaType.APPLICATION_JSON))
 
         val response = adapter.forwardInvite(
-            "!room:example.com", "evt?1", originalUri, "Bearer s3cret", inviteBody
+            "!room:example.com",
+            "evt?1",
+            originalUri,
+            "matrix.traefik.me",
+            "https://matrix.traefik.me/_matrix/federation/v2/invite/room1/evt1",
+            "Bearer s3cret",
+            inviteBody
         )
 
         assertEquals(200, response.statusCode.value())
         server.verify()
-    }
-
-    @Test
-    @DisplayName("returns 502 and publishes a failure event when the invite PDU has no recipient")
-    fun returns502WhenPduHasNoRecipient() {
-        val (adapter, server) = adapterWithServer()
-
-        val response = adapter.forwardInvite(
-            "room1", "evt1", "/_matrix/federation/v2/invite/room1/evt1", "Bearer s3cret", """{"origin":"matrix.traefik.me"}"""
-        )
-
-        assertEquals(502, response.statusCode.value())
-        server.verify()
-        verify(applicationEvents).publishEvent(
-            argWhere<InvitationForwardFailedEvent> { it.roomId == "room1" && it.eventId == "evt1" }
-        )
     }
 
     @Test
@@ -122,11 +123,104 @@ class SynapseInvitationForwardAdapterTest {
             .andRespond(withServerError())
 
         val response = adapter.forwardInvite(
-            "room1", "evt1", "/_matrix/federation/v2/invite/room1/evt1", "Bearer s3cret", inviteBody
+            "room1",
+            "evt1",
+            "/_matrix/federation/v2/invite/room1/evt1",
+            "matrix.traefik.me",
+            "https://matrix.traefik.me/_matrix/federation/v2/invite/room1/evt1",
+            "Bearer s3cret",
+            inviteBody
         )
 
         assertEquals(500, response.statusCode.value())
         server.verify()
         verify(applicationEvents).publishEvent(any<InvitationForwardFailedEvent>())
+    }
+
+    @Test
+    @DisplayName("forwards an outgoing invite to the URL returned by the outgoing URL mapper")
+    fun forwardsOutgoingInviteToMappedOutgoingUrl() {
+        val (adapter, server) = adapterWithServer()
+
+        server.expect(requestTo("https://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1"))
+            .andExpect(method(HttpMethod.PUT))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().string(inviteBody))
+            .andRespond(withSuccess("""{"event":{},"origin":"matrix.traefik.me"}""", MediaType.APPLICATION_JSON))
+
+        val response = adapter.forwardInvite(
+            "room1",
+            "evt1",
+            "/_matrix/federation/v2/invite/room1/evt1",
+            "partner.traefik.me",
+            "https://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1",
+            null,
+            inviteBody
+        )
+
+        assertEquals(200, response.statusCode.value())
+        server.verify()
+        verify(applicationEvents).publishEvent(
+            argWhere<InvitationForwardedEvent> {
+                it.roomId == "room1" && it.eventId == "evt1" && it.statusCode == 200 &&
+                        it.target == "https://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1"
+            }
+        )
+    }
+
+    @Test
+    @DisplayName("applies the local URL mapper to outgoing invites, rewriting http to https")
+    fun forwardsOutgoingInviteThroughLocalOutgoingUrlMapper() {
+        val (adapter, server) = adapterWithServer(LocalOutgoingUrlMapper())
+
+        server.expect(requestTo("https://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1"))
+            .andExpect(method(HttpMethod.PUT))
+            .andRespond(withSuccess("""{"event":{},"origin":"matrix.traefik.me"}""", MediaType.APPLICATION_JSON))
+
+        val response = adapter.forwardInvite(
+            "room1",
+            "evt1",
+            "/_matrix/federation/v2/invite/room1/evt1",
+            "partner.traefik.me",
+            "http://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1",
+            null,
+            inviteBody
+        )
+
+        assertEquals(200, response.statusCode.value())
+        server.verify()
+        verify(applicationEvents).publishEvent(
+            argWhere<InvitationForwardedEvent> {
+                it.target == "https://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1"
+            }
+        )
+    }
+
+    @Test
+    @DisplayName("reports a failure for an outgoing invite against the mapped outgoing URL")
+    fun returns500AndPublishesFailureForOutgoingInvite() {
+        val (adapter, server) = adapterWithServer()
+
+        server.expect(requestTo("https://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1"))
+            .andExpect(method(HttpMethod.PUT))
+            .andRespond(withServerError())
+
+        val response = adapter.forwardInvite(
+            "room1",
+            "evt1",
+            "/_matrix/federation/v2/invite/room1/evt1",
+            "partner.traefik.me",
+            "https://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1",
+            null,
+            inviteBody
+        )
+
+        assertEquals(500, response.statusCode.value())
+        server.verify()
+        verify(applicationEvents).publishEvent(
+            argWhere<InvitationForwardFailedEvent> {
+                it.target == "https://partner.traefik.me/_matrix/federation/v2/invite/room1/evt1"
+            }
+        )
     }
 }

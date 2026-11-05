@@ -4,4 +4,4 @@ pgk:
   fhir:
     base-url: http://localhost:8081/fhir
   federation:
-    forward-base-url: http://localhost:18009
+    forward-base-url: http://localhost:18008

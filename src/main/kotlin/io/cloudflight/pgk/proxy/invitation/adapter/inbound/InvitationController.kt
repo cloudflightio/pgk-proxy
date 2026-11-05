@@ -60,7 +60,7 @@ class InvitationController(
         return when (val evaluation = invitationControlService.evaluateInvitation(body)) {
             is InvitationEvaluation.Allowed -> {
                 val upstream = invitationForwardPort.forwardInvite(
-                    roomId, eventId, request.requestURI, authorization, body
+                    roomId, eventId, request.requestURI, request.serverName, request.requestURL.toString(), authorization, body
                 )
                 ResponseEntity.status(upstream.statusCode).contentType(MediaType.APPLICATION_JSON).body(upstream.body)
             }

@@ -44,6 +44,8 @@ class InvitationControllerTest {
     private val roomId = "testroom"
     private val eventId = "inviteevent"
     private val originalUri = "/_matrix/federation/v2/invite/$roomId/$eventId"
+    private val serverName = "matrix.destination.org"
+    private val url = "http://$serverName$originalUri"
     private val body = """{"origin":"matrix.pgk.example","event":{"type":"m.room.member"}}"""
     private val authorization = "Bearer s3cret"
 
@@ -59,17 +61,38 @@ class InvitationControllerTest {
     fun returns200AndForwardsWhenAllowed() {
         whenever(invitationControlService.evaluateInvitation(body))
             .thenReturn(InvitationEvaluation.Allowed)
-        whenever(invitationForwardPort.forwardInvite(roomId, eventId, originalUri, authorization, body))
+        whenever(
+            invitationForwardPort.forwardInvite(
+                roomId,
+                eventId,
+                originalUri,
+                serverName,
+                url,
+                authorization,
+                body
+            )
+        )
             .thenReturn(ResponseEntity.ok("forwarded"))
 
-        mockMvc.perform(put("/_matrix/federation/v2/invite/$roomId/$eventId")
-            .header("Authorization", authorization)
-            .contentType("application/json")
-            .content(body))
+        mockMvc.perform(
+            put("/_matrix/federation/v2/invite/$roomId/$eventId")
+                .header("Authorization", authorization)
+                .header("Host", serverName)
+                .contentType("application/json")
+                .content(body)
+        )
             .andExpect(status().isOk)
 
         verify(invitationControlService).evaluateInvitation(body)
-        verify(invitationForwardPort).forwardInvite(roomId, eventId, originalUri, authorization, body)
+        verify(invitationForwardPort).forwardInvite(
+            roomId,
+            eventId,
+            originalUri,
+            serverName,
+            url,
+            authorization,
+            body
+        )
     }
 
     @Test
@@ -77,13 +100,23 @@ class InvitationControllerTest {
     fun returnsForwardingResultWhenAllowed() {
         whenever(invitationControlService.evaluateInvitation(body))
             .thenReturn(InvitationEvaluation.Allowed)
-        whenever(invitationForwardPort.forwardInvite(roomId, eventId, originalUri, authorization, body))
+        whenever(invitationForwardPort.forwardInvite(
+            roomId,
+            eventId,
+            originalUri,
+            serverName,
+            url,
+            authorization,
+            body))
             .thenReturn(ResponseEntity.status(500).body("boom"))
 
-        mockMvc.perform(put("/_matrix/federation/v2/invite/$roomId/$eventId")
-            .header("Authorization", authorization)
-            .contentType("application/json")
-            .content(body))
+        mockMvc.perform(
+            put("/_matrix/federation/v2/invite/$roomId/$eventId")
+                .header("Authorization", authorization)
+                .header("Host", serverName)
+                .contentType("application/json")
+                .content(body)
+        )
             .andExpect(status().isInternalServerError)
     }
 
@@ -93,13 +126,15 @@ class InvitationControllerTest {
         whenever(invitationControlService.evaluateInvitation(body))
             .thenReturn(InvitationEvaluation.Denied(DenialReason.FEDERATION_POLICY))
 
-        mockMvc.perform(put("/_matrix/federation/v2/invite/$roomId/$eventId")
-            .contentType("application/json")
-            .content(body))
+        mockMvc.perform(
+            put("/_matrix/federation/v2/invite/$roomId/$eventId")
+                .contentType("application/json")
+                .content(body)
+        )
             .andExpect(status().isForbidden)
             .andExpect(content().json("""{"errcode": "M_FORBIDDEN", "error": "Invite not allowed by policy"}"""))
 
-        verify(invitationForwardPort, never()).forwardInvite(any(), any(), any(), any(), any())
+        verify(invitationForwardPort, never()).forwardInvite(any(), any(), any(), any(), any(),any(), any())
     }
 
     @Test
@@ -108,12 +143,14 @@ class InvitationControllerTest {
         whenever(invitationControlService.evaluateInvitation(body))
             .thenReturn(InvitationEvaluation.Denied(DenialReason.PERSONAL_BLACKLIST))
 
-        mockMvc.perform(put("/_matrix/federation/v2/invite/$roomId/$eventId")
-            .contentType("application/json")
-            .content(body))
+        mockMvc.perform(
+            put("/_matrix/federation/v2/invite/$roomId/$eventId")
+                .contentType("application/json")
+                .content(body)
+        )
             .andExpect(status().isForbidden)
             .andExpect(content().json("""{"errcode": "M_FORBIDDEN", "error": "Invitation blocked by user policy."}"""))
 
-        verify(invitationForwardPort, never()).forwardInvite(any(), any(), any(), any(), any())
+        verify(invitationForwardPort, never()).forwardInvite(any(), any(), any(), any(), any(), any(), any())
     }
 }
