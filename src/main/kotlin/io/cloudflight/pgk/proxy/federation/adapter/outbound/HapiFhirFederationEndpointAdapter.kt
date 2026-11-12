@@ -21,6 +21,7 @@ import ca.uhn.fhir.rest.gclient.TokenClientParam
 import io.cloudflight.pgk.proxy.federation.domain.FederationEndpoint
 import io.cloudflight.pgk.proxy.federation.mapper.FederationEndpointMapper
 import io.cloudflight.pgk.proxy.federation.port.FederationListPort
+import io.cloudflight.pgk.proxy.infrastructure.fhir.HapiBundlePager
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Endpoint
 import org.springframework.stereotype.Component
@@ -32,14 +33,20 @@ class HapiFhirFederationEndpointAdapter(
 ) : FederationListPort {
 
     override fun fetchFederationEndpoints(): List<FederationEndpoint> {
-        val bundle = fhirClient.search<Bundle>()
-            .forResource(Endpoint::class.java)
-            .where(TokenClientParam(Endpoint.SP_CONNECTION_TYPE).exactly()
-                .systemAndIdentifier(CONNECTION_TYPE_SYSTEM, CONNECTION_TYPE_CODE))
-            .returnBundle(Bundle::class.java)
-            .execute()
+        val endpoints = HapiBundlePager.allResources(
+            fhirClient,
+            fhirClient.search<Bundle>()
+                .forResource(Endpoint::class.java)
+                .where(TokenClientParam(Endpoint.SP_CONNECTION_TYPE).exactly()
+                    .systemAndIdentifier(CONNECTION_TYPE_SYSTEM, CONNECTION_TYPE_CODE))
+                .where(TokenClientParam(Endpoint.SP_STATUS).exactly()
+                    .code(Endpoint.EndpointStatus.ACTIVE.toCode()))
+                .count(HapiBundlePager.PAGE_SIZE)
+                .returnBundle(Bundle::class.java)
+                .execute()
+        )
 
-        return bundle.entry.mapNotNull { it.resource as? Endpoint }
+        return endpoints.filterIsInstance<Endpoint>()
             .mapNotNull(endpointMapper::toDomain)
             .distinctBy { it.fqdn }
     }
