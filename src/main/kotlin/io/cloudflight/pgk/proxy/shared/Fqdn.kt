@@ -20,6 +20,6 @@ data class Fqdn(val value: String) {
 
     init {
         require(value.isNotBlank()) { "FQDN must not be blank" }
-        require(value.contains(".")) { "FQDN must contain at least one dot" }
+        require(value.contains(".") || value.contains(":")) { "FQDN must be a domain name or IP literal" }
     }
 }

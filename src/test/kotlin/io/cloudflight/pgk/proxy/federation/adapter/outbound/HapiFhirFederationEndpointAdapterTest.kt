@@ -59,6 +59,7 @@ class HapiFhirFederationEndpointAdapterTest {
             capturedParams += arg<ICriterion<*>>(0) as ICriterionInternal
             query
         }
+        every { query.count(any()) } returns query
         every { query.returnBundle(Bundle::class.java) } returns query
         every { query.execute() } returns bundle
 
@@ -152,11 +153,25 @@ class HapiFhirFederationEndpointAdapterTest {
 
         adapter.fetchFederationEndpoints()
 
-        val criterion = capturedParams.single()
-        assertEquals("connection-type", criterion.parameterName)
+        val criterion = capturedParams.single { it.parameterName == "connection-type" }
         assertEquals(
             "https://pgk.elga.gv.at/CodeSystem/endpoint-connection-type|matrix-homeserver",
             criterion.getParameterValue(FhirContext.forR4())
         )
+    }
+
+    @Test
+    @DisplayName("filters the search request by active endpoint status")
+    fun testFiltersSearchRequestByActiveStatus() {
+        val capturedParams = mutableListOf<ICriterionInternal>()
+        val adapter = HapiFhirFederationEndpointAdapter(
+            clientReturning(bundleWith(), capturedParams),
+            mapper
+        )
+
+        adapter.fetchFederationEndpoints()
+
+        val criterion = capturedParams.single { it.parameterName == "status" }
+        assertEquals("active", criterion.getParameterValue(FhirContext.forR4()))
     }
 }

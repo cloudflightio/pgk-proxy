@@ -138,6 +138,54 @@ class FederationEndpointMapperTest {
     }
 
     @Test
+    @DisplayName("extracts the FQDN from a bare host with a TLD")
+    fun testExtractsFqdnFromBareHostWithTld() {
+        val result = mapper.toDomain(endpoint("matrix.org", TrustLevel.TL_4))
+
+        assertEquals(Fqdn("matrix.org"), result?.fqdn)
+    }
+
+    @Test
+    @DisplayName("extracts the FQDN from a bare host with a TLD and an explicit port")
+    fun testExtractsFqdnFromBareHostWithTldAndPort() {
+        val result = mapper.toDomain(endpoint("matrix.org:8888", TrustLevel.TL_4))
+
+        assertEquals(Fqdn("matrix.org"), result?.fqdn)
+    }
+
+    @Test
+    @DisplayName("extracts the FQDN from an IPv4 literal")
+    fun testExtractsFqdnFromIpv4Literal() {
+        val result = mapper.toDomain(endpoint("1.2.3.4", TrustLevel.TL_4))
+
+        assertEquals(Fqdn("1.2.3.4"), result?.fqdn)
+    }
+
+    @Test
+    @DisplayName("extracts the FQDN from an IPv4 literal with an explicit port")
+    fun testExtractsFqdnFromIpv4LiteralWithPort() {
+        val result = mapper.toDomain(endpoint("1.2.3.4:1234", TrustLevel.TL_4))
+
+        assertEquals(Fqdn("1.2.3.4"), result?.fqdn)
+    }
+
+    @Test
+    @DisplayName("extracts the FQDN from an IPv6 literal")
+    fun testExtractsFqdnFromIpv6Literal() {
+        val result = mapper.toDomain(endpoint("[1234:5678::abcd]", TrustLevel.TL_4))
+
+        assertEquals(Fqdn("1234:5678::abcd"), result?.fqdn)
+    }
+
+    @Test
+    @DisplayName("extracts the FQDN from an IPv6 literal with an explicit port")
+    fun testExtractsFqdnFromIpv6LiteralWithPort() {
+        val result = mapper.toDomain(endpoint("[1234:5678::abcd]:5678", TrustLevel.TL_4))
+
+        assertEquals(Fqdn("1234:5678::abcd"), result?.fqdn)
+    }
+
+    @Test
     @DisplayName("returns null for an address without a valid FQDN")
     fun testReturnsNullForInvalidAddress() {
         assertNull(mapper.toDomain(endpoint("not a url", TrustLevel.TL_4)))

@@ -21,7 +21,6 @@ import io.cloudflight.pgk.proxy.shared.Fqdn
 import io.cloudflight.pgk.proxy.shared.TrustLevel
 import org.hl7.fhir.r4.model.Endpoint
 import org.springframework.stereotype.Component
-import java.net.URI
 
 @Component
 class FederationEndpointMapper {
@@ -37,14 +36,19 @@ class FederationEndpointMapper {
     private fun extractFqdn(address: String?): Fqdn? {
         if (address.isNullOrBlank()) return null
 
-        val host = if (address.contains("://")) {
-            runCatching { URI(address).host }.getOrNull()
-        } else {
-            address.substringBefore("/").substringBefore(":")
-        }
-
-        if (host.isNullOrBlank()) return null
+        val host = extractHost(address) ?: return null
         return runCatching { Fqdn(host) }.getOrNull()
+    }
 
+    private fun extractHost(address: String): String? {
+        val authority = address.substringAfter("://").substringBefore("/")
+        val host = if (authority.startsWith("[")) {
+            val closingBracket = authority.indexOf(']')
+            if (closingBracket == -1) return null
+            authority.substring(1, closingBracket)
+        } else {
+            authority.substringBefore(":")
+        }
+        return host.ifBlank { null }
     }
 }
